@@ -1,0 +1,557 @@
+MapFormat: 12
+
+RequiresMod: ww3mod
+
+Title: Warsaw Srodmiescie WW3
+
+Author: Idzikowski20
+
+Tileset: TEMPERAT
+
+MapSize: 128,128
+
+Bounds: 2,2,124,124
+
+Visibility: Lobby
+
+Categories: Conquest
+
+Players:
+	PlayerReference@Neutral:
+		Name: Neutral
+		OwnsWorld: True
+		NonCombatant: True
+		Faction: Random
+	PlayerReference@Creeps:
+		Name: Creeps
+		NonCombatant: True
+		Faction: Random
+		Enemies: Multi0, Multi1, Multi2, Multi3
+	PlayerReference@Multi0:
+		Name: Multi0
+		Playable: True
+		Faction: Random
+		Enemies: Creeps
+	PlayerReference@Multi1:
+		Name: Multi1
+		Playable: True
+		Faction: Random
+		Enemies: Creeps
+	PlayerReference@Multi2:
+		Name: Multi2
+		Playable: True
+		Faction: Random
+		Enemies: Creeps
+	PlayerReference@Multi3:
+		Name: Multi3
+		Playable: True
+		Faction: Random
+		Enemies: Creeps
+
+Actors:
+	# ---- SPAWN POINTS (4 players, near corners) ----
+	Actor0: mpspawn
+		Owner: Neutral
+		Location: 5,5
+	Actor1: mpspawn
+		Owner: Neutral
+		Location: 122,5
+	Actor2: mpspawn
+		Owner: Neutral
+		Location: 5,122
+	Actor3: mpspawn
+		Owner: Neutral
+		Location: 122,122
+
+	# ---- OIL BARRELS (resources, distributed for balanced gameplay) ----
+	# Near each spawn
+	Actor10: oilb
+		Owner: Neutral
+		Location: 10,10
+	Actor11: oilb
+		Owner: Neutral
+		Location: 117,10
+	Actor12: oilb
+		Owner: Neutral
+		Location: 10,117
+	Actor13: oilb
+		Owner: Neutral
+		Location: 117,117
+	# Centre resources (contested)
+	Actor14: oilb
+		Owner: Neutral
+		Location: 55,55
+	Actor15: oilb
+		Owner: Neutral
+		Location: 72,55
+	Actor16: oilb
+		Owner: Neutral
+		Location: 55,72
+	Actor17: oilb
+		Owner: Neutral
+		Location: 72,72
+	# Mid-lane resources
+	Actor18: oilb
+		Owner: Neutral
+		Location: 35,35
+	Actor19: oilb
+		Owner: Neutral
+		Location: 92,35
+	Actor20: oilb
+		Owner: Neutral
+		Location: 35,92
+	Actor21: oilb
+		Owner: Neutral
+		Location: 92,92
+
+	# ---- CIVILIAN BUILDINGS (Warsaw urban landscape) ----
+	# NW quarter - residential blocks
+	Actor100: v01
+		Owner: Neutral
+		Location: 8,8
+	Actor101: v02
+		Owner: Neutral
+		Location: 12,8
+	Actor102: v03
+		Owner: Neutral
+		Location: 8,12
+	Actor103: v04
+		Owner: Neutral
+		Location: 20,8
+	Actor104: v05
+		Owner: Neutral
+		Location: 8,20
+	Actor105: v06
+		Owner: Neutral
+		Location: 20,20
+	Actor106: v07
+		Owner: Neutral
+		Location: 32,8
+	Actor107: v08
+		Owner: Neutral
+		Location: 8,32
+	Actor108: v09
+		Owner: Neutral
+		Location: 32,20
+	Actor109: v10
+		Owner: Neutral
+		Location: 20,32
+
+	# NE quarter
+	Actor110: v11
+		Owner: Neutral
+		Location: 78,8
+	Actor111: v12
+		Owner: Neutral
+		Location: 90,8
+	Actor112: v13
+		Owner: Neutral
+		Location: 102,8
+	Actor113: v14
+		Owner: Neutral
+		Location: 114,8
+	Actor114: v15
+		Owner: Neutral
+		Location: 78,20
+	Actor115: v16
+		Owner: Neutral
+		Location: 90,20
+	Actor116: v17
+		Owner: Neutral
+		Location: 102,20
+	Actor117: v18
+		Owner: Neutral
+		Location: 114,20
+	Actor118: v19
+		Owner: Neutral
+		Location: 78,32
+	Actor119: v20
+		Owner: Neutral
+		Location: 102,32
+
+	# SW quarter
+	Actor120: v21
+		Owner: Neutral
+		Location: 8,78
+	Actor121: v22
+		Owner: Neutral
+		Location: 20,78
+	Actor122: v23
+		Owner: Neutral
+		Location: 32,78
+	Actor123: v24
+		Owner: Neutral
+		Location: 8,90
+	Actor124: v25
+		Owner: Neutral
+		Location: 20,90
+	Actor125: v26
+		Owner: Neutral
+		Location: 8,114
+	Actor126: v27
+		Owner: Neutral
+		Location: 20,114
+	Actor127: v28
+		Owner: Neutral
+		Location: 32,90
+
+	# SE quarter
+	Actor130: v29
+		Owner: Neutral
+		Location: 78,78
+	Actor131: v30
+		Owner: Neutral
+		Location: 90,78
+	Actor132: v31
+		Owner: Neutral
+		Location: 102,78
+	Actor133: v32
+		Owner: Neutral
+		Location: 114,78
+	Actor134: v33
+		Owner: Neutral
+		Location: 78,90
+	Actor135: v34
+		Owner: Neutral
+		Location: 90,90
+	Actor136: v35
+		Owner: Neutral
+		Location: 102,90
+	Actor137: v36
+		Owner: Neutral
+		Location: 114,90
+	Actor138: v37
+		Owner: Neutral
+		Location: 78,114
+	Actor139: v01
+		Owner: Neutral
+		Location: 102,114
+
+	# Centre - along Marszalkowska (N side)
+	Actor140: v02
+		Owner: Neutral
+		Location: 55,20
+	Actor141: v03
+		Owner: Neutral
+		Location: 55,32
+	Actor142: v04
+		Owner: Neutral
+		Location: 72,20
+	Actor143: v05
+		Owner: Neutral
+		Location: 72,32
+
+	# Centre - along Marszalkowska (S side)
+	Actor144: v06
+		Owner: Neutral
+		Location: 55,78
+	Actor145: v07
+		Owner: Neutral
+		Location: 55,90
+	Actor146: v08
+		Owner: Neutral
+		Location: 72,78
+	Actor147: v09
+		Owner: Neutral
+		Location: 72,90
+
+	# Along Aleje Jerozolimskie (W side)
+	Actor148: v10
+		Owner: Neutral
+		Location: 20,55
+	Actor149: v11
+		Owner: Neutral
+		Location: 32,55
+	Actor150: v12
+		Owner: Neutral
+		Location: 20,72
+	Actor151: v13
+		Owner: Neutral
+		Location: 32,72
+
+	# Along Aleje Jerozolimskie (E side)
+	Actor152: v14
+		Owner: Neutral
+		Location: 90,55
+	Actor153: v15
+		Owner: Neutral
+		Location: 102,55
+	Actor154: v16
+		Owner: Neutral
+		Location: 90,72
+	Actor155: v17
+		Owner: Neutral
+		Location: 102,72
+
+	# Additional scattered buildings
+	Actor160: v18
+		Owner: Neutral
+		Location: 44,8
+	Actor161: v19
+		Owner: Neutral
+		Location: 44,20
+	Actor162: v20
+		Owner: Neutral
+		Location: 44,78
+	Actor163: v21
+		Owner: Neutral
+		Location: 44,90
+	Actor164: v22
+		Owner: Neutral
+		Location: 8,44
+	Actor165: v23
+		Owner: Neutral
+		Location: 20,44
+	Actor166: v24
+		Owner: Neutral
+		Location: 78,44
+	Actor167: v25
+		Owner: Neutral
+		Location: 90,44
+	Actor168: v26
+		Owner: Neutral
+		Location: 114,44
+	Actor169: v27
+		Owner: Neutral
+		Location: 44,114
+	Actor170: v28
+		Owner: Neutral
+		Location: 114,114
+
+	# ---- NEUTRAL STRUCTURES (tech buildings) ----
+	Actor180: fcom
+		Owner: Neutral
+		Location: 63,63
+	Actor181: hosp
+		Owner: Neutral
+		Location: 30,62
+	Actor182: bio
+		Owner: Neutral
+		Location: 95,62
+
+	# ---- TREES (Ogrod Saski park - NW of centre) ----
+	Actor200: t01
+		Owner: Neutral
+		Location: 43,43
+	Actor201: t02
+		Owner: Neutral
+		Location: 45,44
+	Actor202: t05
+		Owner: Neutral
+		Location: 47,43
+	Actor203: t06
+		Owner: Neutral
+		Location: 44,46
+	Actor204: t01
+		Owner: Neutral
+		Location: 49,45
+	Actor205: t02
+		Owner: Neutral
+		Location: 46,48
+	Actor206: t05
+		Owner: Neutral
+		Location: 43,50
+	Actor207: t06
+		Owner: Neutral
+		Location: 48,50
+	Actor208: t01
+		Owner: Neutral
+		Location: 50,47
+	Actor209: t02
+		Owner: Neutral
+		Location: 52,44
+	Actor210: t05
+		Owner: Neutral
+		Location: 44,52
+	Actor211: t06
+		Owner: Neutral
+		Location: 50,52
+	Actor212: t01
+		Owner: Neutral
+		Location: 54,46
+	Actor213: t02
+		Owner: Neutral
+		Location: 52,50
+	Actor214: t05
+		Owner: Neutral
+		Location: 54,52
+	Actor215: tc04
+		Owner: Neutral
+		Location: 46,46
+	Actor216: tc01
+		Owner: Neutral
+		Location: 50,50
+	Actor217: tc04
+		Owner: Neutral
+		Location: 54,48
+	Actor218: tc01
+		Owner: Neutral
+		Location: 43,54
+
+	# ---- TREES (Pole Mokotowskie - south) ----
+	Actor220: t01
+		Owner: Neutral
+		Location: 44,102
+	Actor221: t02
+		Owner: Neutral
+		Location: 48,103
+	Actor222: t05
+		Owner: Neutral
+		Location: 52,101
+	Actor223: t06
+		Owner: Neutral
+		Location: 56,104
+	Actor224: t01
+		Owner: Neutral
+		Location: 60,102
+	Actor225: t02
+		Owner: Neutral
+		Location: 64,103
+	Actor226: t05
+		Owner: Neutral
+		Location: 68,101
+	Actor227: t06
+		Owner: Neutral
+		Location: 72,104
+	Actor228: tc04
+		Owner: Neutral
+		Location: 50,106
+	Actor229: tc01
+		Owner: Neutral
+		Location: 58,108
+	Actor230: tc04
+		Owner: Neutral
+		Location: 66,106
+	Actor231: tc01
+		Owner: Neutral
+		Location: 46,109
+
+	# ---- TREES (NE park) ----
+	Actor240: t01
+		Owner: Neutral
+		Location: 82,22
+	Actor241: t02
+		Owner: Neutral
+		Location: 85,24
+	Actor242: t05
+		Owner: Neutral
+		Location: 88,22
+	Actor243: t06
+		Owner: Neutral
+		Location: 84,26
+	Actor244: t01
+		Owner: Neutral
+		Location: 90,26
+	Actor245: t02
+		Owner: Neutral
+		Location: 86,30
+	Actor246: tc04
+		Owner: Neutral
+		Location: 84,28
+	Actor247: tc01
+		Owner: Neutral
+		Location: 90,24
+
+	# ---- SCATTERED TREES along roads ----
+	Actor250: t16
+		Owner: Neutral
+		Location: 18,62
+	Actor251: t16
+		Owner: Neutral
+		Location: 38,62
+	Actor252: t16
+		Owner: Neutral
+		Location: 82,62
+	Actor253: t16
+		Owner: Neutral
+		Location: 108,62
+	Actor254: t16
+		Owner: Neutral
+		Location: 62,18
+	Actor255: t16
+		Owner: Neutral
+		Location: 62,38
+	Actor256: t16
+		Owner: Neutral
+		Location: 62,82
+	Actor257: t16
+		Owner: Neutral
+		Location: 62,108
+
+	# ---- UTILITY POLES along major roads ----
+	Actor260: utilpol1
+		Owner: Neutral
+		Location: 25,62
+	Actor261: utilpol1
+		Owner: Neutral
+		Location: 45,62
+	Actor262: utilpol1
+		Owner: Neutral
+		Location: 80,62
+	Actor263: utilpol1
+		Owner: Neutral
+		Location: 100,62
+	Actor264: utilpol2
+		Owner: Neutral
+		Location: 62,25
+	Actor265: utilpol2
+		Owner: Neutral
+		Location: 62,45
+	Actor266: utilpol2
+		Owner: Neutral
+		Location: 62,80
+	Actor267: utilpol2
+		Owner: Neutral
+		Location: 62,100
+
+	# ---- EDGE TREES (border decoration) ----
+	Actor270: tc04
+		Owner: Neutral
+		Location: 3,3
+	Actor271: tc04
+		Owner: Neutral
+		Location: 124,3
+	Actor272: tc04
+		Owner: Neutral
+		Location: 3,124
+	Actor273: tc04
+		Owner: Neutral
+		Location: 124,124
+	Actor274: tc01
+		Owner: Neutral
+		Location: 30,3
+	Actor275: tc01
+		Owner: Neutral
+		Location: 60,3
+	Actor276: tc01
+		Owner: Neutral
+		Location: 90,3
+	Actor277: tc01
+		Owner: Neutral
+		Location: 30,124
+	Actor278: tc01
+		Owner: Neutral
+		Location: 60,124
+	Actor279: tc01
+		Owner: Neutral
+		Location: 90,124
+	Actor280: tc04
+		Owner: Neutral
+		Location: 3,30
+	Actor281: tc04
+		Owner: Neutral
+		Location: 3,60
+	Actor282: tc04
+		Owner: Neutral
+		Location: 3,90
+	Actor283: tc04
+		Owner: Neutral
+		Location: 124,30
+	Actor284: tc04
+		Owner: Neutral
+		Location: 124,60
+	Actor285: tc04
+		Owner: Neutral
+		Location: 124,90
+
+Rules: rules.yaml

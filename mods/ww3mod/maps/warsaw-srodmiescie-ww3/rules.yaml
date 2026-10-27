@@ -1,0 +1,12 @@
+World:
+	LuaScript:
+	MapBuildRadius:
+		AllyBuildRadiusCheckboxEnabled: True
+	MapOptions:
+		ShortGameCheckboxEnabled: True
+		TechLevelDropdownVisible: True
+		FogCheckboxVisible: True
+		ExploredMapCheckboxVisible: True
+		CratesCheckboxVisible: True
+		StartingUnitsDropdownVisible: True
+		StartingCashDropdownVisible: True
