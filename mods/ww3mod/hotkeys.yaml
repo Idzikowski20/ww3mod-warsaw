@@ -1,3 +1,46 @@
+# WASD camera scroll — overrides common|hotkeys/viewport.yaml (arrow keys → WASD).
+# The displaced commands (W=SelectByType, A=AttackMove, S=Stop, D=Guard) are unbound;
+# the user's mod does not need them.
+MapScrollUp: W
+	Description: Scroll up
+	Types: Viewport
+	Contexts: Player, Spectator, Editor
+
+MapScrollDown: S
+	Description: Scroll down
+	Types: Viewport
+	Contexts: Player, Spectator, Editor
+
+MapScrollLeft: A
+	Description: Scroll left
+	Types: Viewport
+	Contexts: Player, Spectator, Editor
+
+MapScrollRight: D
+	Description: Scroll right
+	Types: Viewport
+	Contexts: Player, Spectator, Editor
+
+SelectUnitsByType:
+	Description: Select units by type
+	Types: World
+	Contexts: Player, Spectator
+
+AttackMove:
+	Description: Attack move
+	Types: World
+	Contexts: Player
+
+Stop:
+	Description: Stop
+	Types: World
+	Contexts: Player
+
+Guard:
+	Description: Guard
+	Types: World
+	Contexts: Player
+
 # Y/U/I is the contiguous free run on the top row and matches the tab order.
 # The keys these once wanted (E/R/T) are all taken in the Player context now:
 # E=Evacuate, R=Resupply (common|hotkeys/game.yaml), T=ShowTerritory below.
