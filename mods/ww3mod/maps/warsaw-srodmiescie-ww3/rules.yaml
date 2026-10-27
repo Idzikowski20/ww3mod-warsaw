@@ -10,3 +10,35 @@ World:
 		CratesCheckboxVisible: True
 		StartingUnitsDropdownVisible: True
 		StartingCashDropdownVisible: True
+	# 3D Warsaw: GUGiK LoD2 buildings and the OSM ground, built by tools/warsaw/build_city.py.
+	CityMap:
+
+# One per GUGiK building; map.yaml gives each its mesh (`CityBuilding: <index>`).
+warsawbuilding:
+	Interactable:
+	CityBuilding:
+	BodyOrientation:
+		QuantizedFacings: 1
+	Health:
+		HP: 80000
+	Armor:
+		Type: Concrete
+		Thickness: 1000
+	HitShape:
+		UseTargetableCellsOffsets: true
+		Type: Rectangle
+			VerticalTopOffset: 1024
+			TopLeft: -512, -512
+			BottomRight: 512, 512
+	Targetable:
+		TargetTypes: Ground, C4, DetonateAttack, Structure
+	BlocksProjectiles:
+	AppearsOnMiniMap:
+	Tooltip:
+		Name: Building
+	Explodes:
+		Weapon: BuildingExplode
+		EmptyWeapon: BuildingExplode
+	ScriptTriggers:
+	MapEditorData:
+		Categories: Civilian building

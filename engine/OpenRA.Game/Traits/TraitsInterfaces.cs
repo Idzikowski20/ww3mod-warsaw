@@ -475,6 +475,17 @@ namespace OpenRA.Traits
 	public interface IRenderAboveWorld { void RenderAboveWorld(Actor self, WorldRenderer wr); }
 
 	/// <summary>
+	/// World-actor traits that draw true 3D geometry for the perspective camera (Viewport.Is3D).
+	/// RenderGround runs right after the terrain; RenderMeshes after the actors, with the depth buffer on
+	/// so later ground-level passes (fog, shroud) are hidden behind the meshes.
+	/// </summary>
+	public interface IRenderWorld3D
+	{
+		void RenderGround(WorldRenderer wr);
+		void RenderMeshes(WorldRenderer wr);
+	}
+
+	/// <summary>
 	/// WW3MOD: a TRAIT that contributes renderables to the same slot as
 	/// <see cref="Effects.IEffectAboveFog"/> -- after the translucent fog layers, before the opaque
 	/// unexplored layer. The effect interface covers things that live in <c>World.Effects</c>; this

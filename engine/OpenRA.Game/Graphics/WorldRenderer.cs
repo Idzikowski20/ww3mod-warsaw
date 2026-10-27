@@ -67,6 +67,7 @@ namespace OpenRA.Graphics
 		readonly List<IRenderable> renderablesBuffer = new();
 		readonly IRenderer[] renderers;
 		readonly IRenderPostProcessPass[] postProcessPasses;
+		readonly IRenderWorld3D[] renderers3D;
 
 		internal WorldRenderer(ModData modData, World world)
 		{
@@ -95,6 +96,7 @@ namespace OpenRA.Graphics
 			debugVis = Exts.Lazy(() => world.WorldActor.TraitOrDefault<DebugVisualizations>());
 
 			postProcessPasses = world.WorldActor.TraitsImplementing<IRenderPostProcessPass>().ToArray();
+			renderers3D = world.WorldActor.TraitsImplementing<IRenderWorld3D>().ToArray();
 		}
 
 		public void BeginFrame()
@@ -377,6 +379,11 @@ namespace OpenRA.Graphics
 
 			terrainRenderer?.RenderTerrain(this, Viewport);
 
+			var draw3D = Viewport.Is3D && renderers3D.Length > 0;
+			if (draw3D)
+				foreach (var r in renderers3D)
+					r.RenderGround(this);
+
 			// WW3MOD: Black out beyond-map area AFTER terrain but BEFORE actors.
 			// Hides terrain tile overflow at edges, but actors/trees/projectiles
 			// render on top so tall sprites near edges remain visible.
@@ -387,6 +394,17 @@ namespace OpenRA.Graphics
 
 			for (var i = 0; i < preparedRenderables.Count; i++)
 				preparedRenderables[i].Render(this);
+
+			// The 2D world is a plane at depth-free painter's order; meshes stand on it. Depth stays on
+			// until the overlays so fog and shroud quads on the ground stay behind the buildings.
+			if (draw3D)
+			{
+				Game.Renderer.EnableDepthBuffer();
+				foreach (var r in renderers3D)
+					r.RenderMeshes(this);
+
+				Game.Renderer.Flush();
+			}
 
 			if (enableDepthBuffer)
 				Game.Renderer.ClearDepthBuffer();
@@ -441,7 +459,7 @@ namespace OpenRA.Graphics
 			if (World.Type != WorldType.Editor)
 				DrawBeyondMapActorUnexplored();
 
-			if (enableDepthBuffer)
+			if (enableDepthBuffer || draw3D)
 				Game.Renderer.Context.DisableDepthBuffer();
 
 			Game.Renderer.DisableScissor();

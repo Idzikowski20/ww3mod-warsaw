@@ -1053,7 +1053,13 @@ namespace OpenRA
 				var actorReference = new ActorReference(kv.Value.Value, kv.Value.ToDictionary());
 				var location = actorReference.Get<LocationInit>().Value;
 				var actorType = actorReference.Type;
-				var ai = actorsRules[actorType];
+
+				// This runs from the Map constructor, before the map's own rules.yaml is merged in, so an
+				// actor type defined only by the map is not in Rules yet. It cannot carry density for
+				// this layer anyway: skip it rather than fail to load the map.
+				if (!actorsRules.TryGetValue(actorType, out var ai))
+					continue;
+
 				var density = ai.TraitInfoOrDefault<IDensityInfo>();
 
 				if (density != null)

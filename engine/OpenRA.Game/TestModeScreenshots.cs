@@ -280,17 +280,39 @@ namespace OpenRA
 						TestMode.ZoneStroke = (erasing ? "erase " : "paint ") + arg;
 						Log.Write("debug", $"[TestMode] external zone stroke: {TestMode.ZoneStroke}");
 					}
-					// "camera <yaw-deg> <altitude-m>" — pose the perspective camera (PerspectiveCamera in
-					// mod.yaml) so a driver can photograph rotation and altitude without a mouse.
+					// "camera <yaw-deg> <altitude-m> [<cell-x> <cell-y>]" — pose the perspective camera
+					// (PerspectiveCamera in mod.yaml) so a driver can photograph it without a mouse.
 					else if (line.StartsWith("camera ", StringComparison.OrdinalIgnoreCase))
 					{
 						var parts = line.Substring("camera ".Length).Split(' ', StringSplitOptions.RemoveEmptyEntries);
-						if (parts.Length == 2
+						var cx = 0;
+						var cy = 0;
+						var hasCell = parts.Length == 4
+							&& int.TryParse(parts[2], NumberStyles.Integer, CultureInfo.InvariantCulture, out cx)
+							&& int.TryParse(parts[3], NumberStyles.Integer, CultureInfo.InvariantCulture, out cy);
+						if ((parts.Length == 2 || hasCell)
 							&& float.TryParse(parts[0], NumberStyles.Float, CultureInfo.InvariantCulture, out var yaw)
 							&& float.TryParse(parts[1], NumberStyles.Float, CultureInfo.InvariantCulture, out var altitude))
-							Game.RunAfterTick(() => Game.worldRenderer?.Viewport.SetCameraView(yaw, altitude));
+							Game.RunAfterTick(() =>
+							{
+								var wr = Game.worldRenderer;
+								if (wr == null)
+									return;
+
+								if (hasCell)
+									wr.Viewport.Center(wr.World.Map.CenterOfCell(new CPos(cx, cy)));
+
+								wr.Viewport.SetCameraView(yaw, altitude);
+							});
 						else
 							Log.Write("debug", $"[TestMode] bad camera cmd: {line}");
+					}
+					// "perf" — log the render frame counter and recent render times, so a driver can
+					// take two readings and work out a frame rate.
+					else if (string.Equals(line, "perf", StringComparison.OrdinalIgnoreCase))
+					{
+						Log.Write("debug", FormattableString.Invariant(
+							$"[TestMode] perf: frame={Game.RenderFrame} ms={Game.RunTime} render_world={Support.PerfHistory.Items["render_world"].Average(30):F2} render_widgets={Support.PerfHistory.Items["render_widgets"].Average(30):F2} batches={Support.PerfHistory.Items["batches"].Average(30):F0}"));
 					}
 					else if (string.Equals(line, "quit", StringComparison.OrdinalIgnoreCase))
 				{
