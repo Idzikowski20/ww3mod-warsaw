@@ -163,7 +163,9 @@ void main()
 		vec2 textureSize = Size(vChannelSampler);
 		vec2 vUv = coords.st * textureSize;
 		vec2 offset = fract(vUv);
-		vec2 pixelsPerTexel = vec2(1.0 / dFdx(vUv.x), 1.0 / dFdy(vUv.y));
+		// fwidth, not dFdx(u)/dFdy(v): under a rotated perspective camera u can change only along y
+		// (dFdx(u) == 0 -> 0 * inf = NaN) or run backwards (negative -> clamped to a hard edge).
+		vec2 pixelsPerTexel = 1.0 / max(fwidth(vUv), vec2(1e-4));
 
 		// Offset the sampling point to simulate bilinear intepolation in window coordinates instead of texture coordinates
 		// https://csantosbh.wordpress.com/2014/01/25/manual-texture-filtering-for-pixelated-games-in-webgl/

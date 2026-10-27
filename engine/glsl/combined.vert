@@ -4,6 +4,11 @@ uniform vec3 Scroll;
 uniform vec3 p1, p2;
 uniform float PaletteRows;
 
+// Perspective camera: the 2D world (world px, x east, y south) is laid on the y = 0 plane of an
+// x east / y up / z south frame and drawn through ViewProjection (see Graphics/Camera3D.cs).
+uniform bool Use3D;
+uniform mat4 ViewProjection;
+
 in vec3 aVertexPosition;
 in vec4 aVertexTexCoord;
 in uint aVertexAttributes;
@@ -39,7 +44,10 @@ vec4 SelectChannelMask(uint x)
 
 void main()
 {
-	gl_Position = vec4((aVertexPosition - Scroll) * p1 + p2, 1);
+	if (Use3D)
+		gl_Position = ViewProjection * vec4(aVertexPosition.x, 0.0, aVertexPosition.y, 1.0);
+	else
+		gl_Position = vec4((aVertexPosition - Scroll) * p1 + p2, 1);
 	vTexCoord = aVertexTexCoord;
 
 	// aVertexAttributes is a packed bitfield, where:

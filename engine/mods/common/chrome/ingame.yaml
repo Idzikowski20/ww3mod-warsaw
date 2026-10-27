@@ -65,6 +65,8 @@ Container@INGAME_ROOT:
 					BookmarkKeyCount: 4
 					ShowAllOrdersKey: ShowAllOrders
 					ShowTerritoryKey: ShowTerritory
+					RotateLeftKey: CameraRotateLeft
+					RotateRightKey: CameraRotateRight
 				StrategicProgress@STRATEGIC_PROGRESS:
 					X: WINDOW_WIDTH / 2
 					Y: 40

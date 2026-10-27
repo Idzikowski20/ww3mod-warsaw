@@ -48,14 +48,26 @@ namespace OpenRA.Graphics
 		readonly Rectangle mapBounds;
 		readonly Size tileSize;
 
+		// Perspective camera (mod.yaml PerspectiveCamera.Enabled). Null = the classic 2D viewport.
+		// With it the world is a plane under the camera: TopLeft/BottomRight bound the ground it sees.
+		readonly Camera3D camera;
+		Rectangle visibleGround;
+
+		// Map sprites stand north of their cell in world px (tall art, aircraft at altitude), so the
+		// culling box is grown by this many cells past the ground the camera sees.
+		const int VisibleGroundMarginCells = 8;
+
+		public Camera3D Camera => camera;
+		public bool Is3D => camera != null;
+
 		// Viewport geometry (world-px)
 		public int2 CenterLocation { get; private set; }
 
 		public WPos CenterPosition => worldRenderer.ProjectedPosition(CenterLocation);
 
-		public Rectangle Rectangle => new(TopLeft, new Size(viewportSize.X, viewportSize.Y));
-		public int2 TopLeft => CenterLocation - viewportSize / 2;
-		public int2 BottomRight => CenterLocation + viewportSize / 2;
+		public Rectangle Rectangle => new(camera != null ? int2.Zero : TopLeft, new Size(viewportSize.X, viewportSize.Y));
+		public int2 TopLeft => camera != null ? visibleGround.Location : CenterLocation - viewportSize / 2;
+		public int2 BottomRight => camera != null ? visibleGround.BottomRight : CenterLocation + viewportSize / 2;
 		int2 viewportSize;
 		ProjectedCellRegion cells;
 		bool cellsDirty = true;
@@ -104,12 +116,26 @@ namespace OpenRA.Graphics
 
 		public void AdjustZoom(float dz)
 		{
+			// Zooming in (dz > 0) is one wheel notch down for the perspective camera.
+			if (camera != null)
+			{
+				if (dz != 0)
+					camera.Scroll(-Math.Sign(dz));
+				return;
+			}
+
 			// Exponential ensures that equal positive and negative steps have the same effect
 			SetZoom(zoom * (float)Math.Exp(dz));
 		}
 
 		public void AdjustZoom(float dz, int2 center)
 		{
+			if (camera != null)
+			{
+				AdjustZoom(dz);
+				return;
+			}
+
 			var oldCenter = worldRenderer.Viewport.ViewToWorldPx(center);
 			AdjustZoom(dz);
 			var newCenter = worldRenderer.Viewport.ViewToWorldPx(center);
@@ -138,6 +164,9 @@ namespace OpenRA.Graphics
 		public ScrollDirection GetBlockedDirections()
 		{
 			var ret = ScrollDirection.None;
+			if (camera != null)
+				return ret;
+
 			if (CenterLocation.Y <= mapBounds.Top)
 				ret |= ScrollDirection.Up;
 			if (CenterLocation.X <= mapBounds.Left)
@@ -179,7 +208,58 @@ namespace OpenRA.Graphics
 
 			tileSize = grid.TileSize;
 
+			var perspective = Game.ModData.Manifest.Get<PerspectiveCamera>();
+			if (perspective.Enabled && wr.World.Type != WorldType.Editor)
+			{
+				camera = new Camera3D(perspective, tileSize.Height / perspective.MetresPerCell, mapBounds, Game.Renderer.NativeResolution);
+				RefreshCamera();
+			}
+
 			UpdateViewportZooms();
+		}
+
+		/// <summary>
+		/// Advances the perspective camera one frame. <paramref name="input"/> is the screen pan direction
+		/// (x right, y up); <paramref name="yawInput"/> is -1, 0 or +1.
+		/// </summary>
+		public void UpdateCamera(float dt, float2 input, bool fast, int yawInput)
+		{
+			camera.Update(dt, input, fast, yawInput, Game.Renderer.NativeResolution);
+			RefreshCamera();
+		}
+
+		/// <summary>Middle drag on the perspective camera, in view px: yaw, or with <paramref name="grab"/> drag the map.</summary>
+		public void DragCamera(int2 delta, bool grab)
+		{
+			var native = ViewToNative * delta.ToFloat2();
+			if (grab)
+				camera.GrabPan(native);
+			else
+				camera.DragYaw(native.X);
+
+			RefreshCamera();
+		}
+
+		/// <summary>Test hook: pose the perspective camera at a yaw (degrees) and settled altitude (metres).</summary>
+		public void SetCameraView(float yaw, float altitude)
+		{
+			if (camera == null)
+				return;
+
+			camera.SetView(yaw, altitude);
+			RefreshCamera();
+		}
+
+		// View px (mouse, UI layout: Renderer.Resolution) to the camera's screen px (Renderer.NativeResolution).
+		// Not UIScale: under OS DPI scaling the two differ by the DPI factor too.
+		static float ViewToNative => (float)Game.Renderer.NativeResolution.Height / Game.Renderer.Resolution.Height;
+
+		void RefreshCamera()
+		{
+			CenterLocation = camera.Target.ToInt2();
+			visibleGround = camera.VisibleGround(VisibleGroundMarginCells * tileSize.Height);
+			cellsDirty = true;
+			allCellsDirty = true;
 		}
 
 		public void Tick()
@@ -221,6 +301,18 @@ namespace OpenRA.Graphics
 		void UpdateViewportZooms(bool resetCurrentZoom = true)
 		{
 			lastViewportDistance = graphicSettings.ViewportDistance;
+
+			// The perspective camera renders the world at window resolution; distance is its altitude, not zoom.
+			if (camera != null)
+			{
+				MinZoom = MaxZoom = unlockedMinZoom = 1f;
+				Zoom = 1f;
+				Game.Renderer.SetMaximumViewportSize(Game.Renderer.NativeResolution);
+				foreach (var t in worldRenderer.World.WorldActor.TraitsImplementing<INotifyViewportZoomExtentsChanged>())
+					t.ViewportZoomExtentsChanged(1f, 1f);
+
+				return;
+			}
 
 			var vd = graphicSettings.ViewportDistance;
 			if (viewportSizes.AllowNativeZoom && vd == WorldViewport.Native)
@@ -322,9 +414,31 @@ namespace OpenRA.Graphics
 					yield return new MPos(u, v);
 		}
 
-		public int2 ViewToWorldPx(int2 view) { return (graphicSettings.UIScale / Zoom * view.ToFloat2()).ToInt2() + TopLeft; }
-		public int2 WorldToViewPx(int2 world) { return (Zoom / graphicSettings.UIScale * (world - TopLeft).ToFloat2()).ToInt2(); }
-		public int2 WorldToViewPx(in float3 world) { return (Zoom / graphicSettings.UIScale * (world - TopLeft).XY).ToInt2(); }
+		// With the perspective camera the world px plane is the ground: view px go through it by ray, and any
+		// float3 is placed at its XY (the 2D world is drawn flat, so its Z depth is not a height).
+		public int2 ViewToWorldPx(int2 view)
+		{
+			if (camera != null)
+				return camera.GroundAt(ViewToNative * view.ToFloat2()).ToInt2();
+
+			return (graphicSettings.UIScale / Zoom * view.ToFloat2()).ToInt2() + TopLeft;
+		}
+
+		public int2 WorldToViewPx(int2 world)
+		{
+			if (camera != null)
+				return (camera.Project(world) / ViewToNative).ToInt2();
+
+			return (Zoom / graphicSettings.UIScale * (world - TopLeft).ToFloat2()).ToInt2();
+		}
+
+		public int2 WorldToViewPx(in float3 world)
+		{
+			if (camera != null)
+				return (camera.Project(world.XY) / ViewToNative).ToInt2();
+
+			return (Zoom / graphicSettings.UIScale * (world - TopLeft).XY).ToInt2();
+		}
 
 		// Sub-pixel counterpart of WorldToViewPx. That overload truncates to whole pixels (float2.ToInt2 is
 		// (int)X, (int)Y), which is right for placing a sprite or a selection box and wrong for a tessellated
@@ -334,8 +448,15 @@ namespace OpenRA.Graphics
 		// that draw nothing at all. The snap pattern is also a function of TopLeft and Zoom rather than of the
 		// world, so it re-rolls as the viewport scrolls or the subject moves. Curves want this instead.
 		public static float2 ProjectToViewPx(in float3 world, int2 topLeft, float scale) { return scale * (world - topLeft).XY; }
-		public float ViewPxScale => Zoom / graphicSettings.UIScale;
-		public float2 WorldToViewPxF(in float3 world) { return ProjectToViewPx(world, TopLeft, ViewPxScale); }
+		public float ViewPxScale => camera != null ? camera.PxScaleAtTarget / ViewToNative : Zoom / graphicSettings.UIScale;
+
+		public float2 WorldToViewPxF(in float3 world)
+		{
+			if (camera != null)
+				return camera.Project(world.XY) / ViewToNative;
+
+			return ProjectToViewPx(world, TopLeft, ViewPxScale);
+		}
 
 		public void Center(IEnumerable<Actor> actors)
 		{
@@ -350,6 +471,13 @@ namespace OpenRA.Graphics
 
 		public void Center(WPos pos)
 		{
+			if (camera != null)
+			{
+				camera.CenterOn(worldRenderer.ScreenPxPosition(pos));
+				RefreshCamera();
+				return;
+			}
+
 			CenterLocation = worldRenderer.ScreenPxPosition(pos).Clamp(mapBounds);
 			cellsDirty = true;
 			allCellsDirty = true;
@@ -366,6 +494,13 @@ namespace OpenRA.Graphics
 		/// </summary>
 		public void ScrollPx(int2 delta)
 		{
+			if (camera != null)
+			{
+				camera.Offset(delta);
+				RefreshCamera();
+				return;
+			}
+
 			CenterLocation += delta;
 			cellsDirty = true;
 			allCellsDirty = true;
@@ -373,6 +508,13 @@ namespace OpenRA.Graphics
 
 		public void Scroll(float2 delta, bool ignoreBorders)
 		{
+			if (camera != null)
+			{
+				camera.PanScreen(delta);
+				RefreshCamera();
+				return;
+			}
+
 			// Convert scroll delta from world-px to viewport-px
 			CenterLocation += (1f / Zoom * delta).ToInt2();
 			cellsDirty = true;
@@ -385,6 +527,10 @@ namespace OpenRA.Graphics
 		// Rectangle (in viewport coords) that contains things to be drawn
 		public Rectangle GetScissorBounds(bool insideBounds)
 		{
+			// Under perspective the map edge is not a screen rectangle: draw the whole window.
+			if (camera != null)
+				return new Rectangle(0, 0, viewportSize.X, viewportSize.Y);
+
 			// Visible rectangle in world coordinates (expanded to the corners of the cells)
 			var bounds = insideBounds ? VisibleCellsInsideBounds : AllVisibleCells;
 			var map = worldRenderer.World.Map;

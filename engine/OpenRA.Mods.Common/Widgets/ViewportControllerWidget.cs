@@ -44,6 +44,10 @@ namespace OpenRA.Mods.Common.Widgets
 
 		public readonly HotkeyReference ShowTerritoryKey = new();
 
+		[Desc("Held keys that turn the perspective camera (PerspectiveCamera in mod.yaml).")]
+		public readonly HotkeyReference RotateLeftKey = new();
+		public readonly HotkeyReference RotateRightKey = new();
+
 		// Note: LinterHotkeyNames assumes that these are disabled by default
 		public readonly string BookmarkSaveKeyPrefix = null;
 		public readonly string BookmarkRestoreKeyPrefix = null;
@@ -101,6 +105,12 @@ namespace OpenRA.Mods.Common.Widgets
 
 		ScrollDirection keyboardDirections;
 		ScrollDirection edgeDirections;
+
+		// Perspective camera input state.
+		bool rotateLeft, rotateRight;
+		bool cameraDragging;
+		int2 lastDragLocation;
+		long lastCameraTime;
 
 		HotkeyReference[] saveBookmarkHotkeys;
 		HotkeyReference[] restoreBookmarkHotkeys;
@@ -186,6 +196,14 @@ namespace OpenRA.Mods.Common.Widgets
 		long lastScrollTime = 0;
 		public override void Draw()
 		{
+			if (worldRenderer.Viewport.Is3D)
+			{
+				UpdateCamera();
+				UpdateMouseover();
+				base.Draw();
+				return;
+			}
+
 			if (IsJoystickScrolling)
 			{
 				// Base the JoystickScrolling speed on the Scroll Speed slider
@@ -225,6 +243,72 @@ namespace OpenRA.Mods.Common.Widgets
 
 			UpdateMouseover();
 			base.Draw();
+		}
+
+		/// <summary>Feeds one frame of keys and screen-edge input to the perspective camera.</summary>
+		void UpdateCamera()
+		{
+			var now = Game.RunTime;
+			var dt = lastCameraTime == 0 ? 0f : Math.Clamp((now - lastCameraTime) / 1000f, 0f, 0.1f);
+			lastCameraTime = now;
+
+			edgeDirections = ScrollDirection.None;
+			var devWindowedNoEdgePan = TestMode.IsActive && Game.Settings.Graphics.Mode == WindowMode.Windowed;
+			if (!cameraDragging && Game.Settings.Game.ViewportEdgeScroll && Game.Renderer.WindowHasInputFocus && !devWindowedNoEdgePan)
+				edgeDirections = CheckForDirections();
+
+			if (Ui.KeyboardFocusWidget != null)
+			{
+				keyboardDirections = ScrollDirection.None;
+				rotateLeft = rotateRight = false;
+			}
+
+			var dirs = keyboardDirections | edgeDirections;
+			var input = new float2(
+				(dirs.Includes(ScrollDirection.Right) ? 1 : 0) - (dirs.Includes(ScrollDirection.Left) ? 1 : 0),
+				(dirs.Includes(ScrollDirection.Up) ? 1 : 0) - (dirs.Includes(ScrollDirection.Down) ? 1 : 0));
+
+			var fast = Game.GetModifierKeys().HasModifier(Modifiers.Shift);
+			var yaw = (rotateRight ? 1 : 0) - (rotateLeft ? 1 : 0);
+			worldRenderer.Viewport.UpdateCamera(dt, input, fast, yaw);
+		}
+
+		/// <summary>Wheel = altitude, middle drag = yaw, Alt + middle drag = grab the map.</summary>
+		bool HandleCameraMouse(MouseInput mi)
+		{
+			if (mi.Event == MouseInputEvent.Scroll)
+			{
+				worldRenderer.Viewport.AdjustZoom(mi.Delta.Y);
+				return true;
+			}
+
+			if (mi.Event == MouseInputEvent.Down && mi.Button == MouseButton.Middle)
+			{
+				if (!TakeMouseFocus(mi))
+					return false;
+
+				cameraDragging = true;
+				lastDragLocation = mi.Location;
+				worldRenderer.Viewport.Camera.SetDragging(true);
+				return true;
+			}
+
+			if (!cameraDragging)
+				return false;
+
+			if (mi.Event == MouseInputEvent.Move)
+			{
+				worldRenderer.Viewport.DragCamera(mi.Location - lastDragLocation, mi.Modifiers.HasModifier(Modifiers.Alt));
+				lastDragLocation = mi.Location;
+			}
+			else if (mi.Event == MouseInputEvent.Up && mi.Button == MouseButton.Middle)
+			{
+				cameraDragging = false;
+				worldRenderer.Viewport.Camera.SetDragging(false);
+				YieldMouseFocus(mi);
+			}
+
+			return true;
 		}
 
 		public void UpdateMouseover()
@@ -319,6 +403,9 @@ namespace OpenRA.Mods.Common.Widgets
 
 		public override bool HandleMouseInput(MouseInput mi)
 		{
+			if (worldRenderer.Viewport.Is3D)
+				return HandleCameraMouse(mi);
+
 			if (mi.Event == MouseInputEvent.Scroll && mi.Modifiers.HasModifier(Game.Settings.Game.ZoomModifier))
 			{
 				worldRenderer.Viewport.AdjustZoom(mi.Delta.Y * Game.Settings.Game.ZoomSpeed, mi.Location);
@@ -426,6 +513,20 @@ namespace OpenRA.Mods.Common.Widgets
 
 			if (HandleMapScrollKey(ScrollUpKey, ScrollDirection.Up) || HandleMapScrollKey(ScrollDownKey, ScrollDirection.Down)
 				|| HandleMapScrollKey(ScrollLeftKey, ScrollDirection.Left) || HandleMapScrollKey(ScrollRightKey, ScrollDirection.Right))
+				return true;
+
+			// Held rotate keys, same rule as the scroll keys: a bare binding also turns while modifiers are down.
+			bool HandleRotateKey(HotkeyReference hotkey, ref bool held)
+			{
+				var keyValue = hotkey.GetValue();
+				if (keyValue.Key == Keycode.UNKNOWN || key.Key != keyValue.Key)
+					return false;
+
+				held = e.Event == KeyInputEvent.Down && (key == keyValue || keyValue.Modifiers == Modifiers.None);
+				return key == keyValue;
+			}
+
+			if (worldRenderer.Viewport.Is3D && (HandleRotateKey(RotateLeftKey, ref rotateLeft) | HandleRotateKey(RotateRightKey, ref rotateRight)))
 				return true;
 
 			// Show all orders — hold to show, release to hide

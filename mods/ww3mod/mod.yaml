@@ -378,6 +378,12 @@ MapGrid:
 	TileSize: 24,24
 	Type: Rectangular
 
+# Perspective 3D camera, a copy of the Godot prototype's (game-studio src/camera/rts_camera.gd).
+# Every tuning value defaults to that camera; see engine/OpenRA.Game/Graphics/Camera3D.cs.
+PerspectiveCamera:
+	Enabled: true
+	MetresPerCell: 8
+
 DefaultOrderGenerator: UnitOrderGenerator
 
 SupportsMapsFrom: ww3mod #, ra?

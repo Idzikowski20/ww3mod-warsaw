@@ -14,6 +14,7 @@
 
 using System;
 using System.Collections.Generic;
+using System.Globalization;
 using System.IO;
 using System.Text;
 
@@ -278,6 +279,18 @@ namespace OpenRA
 						var arg = line.Substring("zone-paint ".Length).Trim();
 						TestMode.ZoneStroke = (erasing ? "erase " : "paint ") + arg;
 						Log.Write("debug", $"[TestMode] external zone stroke: {TestMode.ZoneStroke}");
+					}
+					// "camera <yaw-deg> <altitude-m>" — pose the perspective camera (PerspectiveCamera in
+					// mod.yaml) so a driver can photograph rotation and altitude without a mouse.
+					else if (line.StartsWith("camera ", StringComparison.OrdinalIgnoreCase))
+					{
+						var parts = line.Substring("camera ".Length).Split(' ', StringSplitOptions.RemoveEmptyEntries);
+						if (parts.Length == 2
+							&& float.TryParse(parts[0], NumberStyles.Float, CultureInfo.InvariantCulture, out var yaw)
+							&& float.TryParse(parts[1], NumberStyles.Float, CultureInfo.InvariantCulture, out var altitude))
+							Game.RunAfterTick(() => Game.worldRenderer?.Viewport.SetCameraView(yaw, altitude));
+						else
+							Log.Write("debug", $"[TestMode] bad camera cmd: {line}");
 					}
 					else if (string.Equals(line, "quit", StringComparison.OrdinalIgnoreCase))
 				{

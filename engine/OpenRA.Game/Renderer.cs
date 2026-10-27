@@ -240,7 +240,7 @@ namespace OpenRA
 			lastMaximumViewportSize = size;
 		}
 
-		public void BeginWorld(Rectangle worldViewport)
+		public void BeginWorld(Rectangle worldViewport, float[] viewProjection = null)
 		{
 			if (renderType != RenderType.None)
 				throw new InvalidOperationException($"BeginWorld called with renderType = {renderType}, expected RenderType.None.");
@@ -273,6 +273,9 @@ namespace OpenRA
 				WorldSpriteRenderer.SetViewportParams(worldSheet.Size, WorldDownscaleFactor, depthMargin, worldViewport.Location);
 				lastWorldViewport = worldViewport;
 			}
+
+			// Every frame: the perspective camera moves without changing worldViewport.
+			WorldSpriteRenderer.SetViewProjection(viewProjection);
 
 			// WW3MOD: Enable pixel art scaling for world sprites so scaled units
 			// (e.g. infantry at 0.5x) retain crisp pixel art instead of bilinear blur

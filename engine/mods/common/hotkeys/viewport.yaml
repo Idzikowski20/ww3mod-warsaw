@@ -92,3 +92,14 @@ ResetZoom: PERIOD
 	Description: Reset zoom
 	Types: Viewport
 	Contexts: Player, Spectator, Editor
+
+# Perspective camera only (mod.yaml PerspectiveCamera). Unbound here; a mod that enables the camera binds them.
+CameraRotateLeft:
+	Description: Rotate camera left
+	Types: Viewport
+	Contexts: Player, Spectator
+
+CameraRotateRight:
+	Description: Rotate camera right
+	Types: Viewport
+	Contexts: Player, Spectator

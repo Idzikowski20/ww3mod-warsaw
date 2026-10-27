@@ -247,6 +247,15 @@ namespace OpenRA.Graphics
 			shader.SetVec("p2", -1, -1, depthMargin != 0f ? 1 : 0);
 		}
 
+		/// <summary>Switches the world pass to the perspective camera (null = the classic 2D projection).</summary>
+		public void SetViewProjection(float[] viewProjection)
+		{
+			shader.SetBool("Use3D", viewProjection != null);
+			// Copied: the threaded context posts the array to the render thread, and the camera rewrites it next frame.
+			if (viewProjection != null)
+				shader.SetMatrix("ViewProjection", (float[])viewProjection.Clone());
+		}
+
 		public void SetDepthPreview(bool enabled, float contrast, float offset)
 		{
 			shader.SetBool("EnableDepthPreview", enabled);

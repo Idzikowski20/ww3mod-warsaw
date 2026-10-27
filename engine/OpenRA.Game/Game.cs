@@ -43,7 +43,7 @@ namespace OpenRA
 		public static CursorManager Cursor;
 		public static bool HideCursor;
 
-		static WorldRenderer worldRenderer;
+		internal static WorldRenderer worldRenderer;
 		static string modLaunchWrapper;
 
 		internal static OrderManager OrderManager;
@@ -912,7 +912,7 @@ namespace OpenRA
 				// Use worldRenderer.World instead of OrderManager.World to avoid a rendering mismatch while processing orders
 				if (worldRenderer != null && !worldRenderer.World.IsLoadingGameSave)
 				{
-					Renderer.BeginWorld(worldRenderer.Viewport.Rectangle);
+					Renderer.BeginWorld(worldRenderer.Viewport.Rectangle, worldRenderer.Viewport.Camera?.ViewProjection);
 					Sound.SetListenerPosition(worldRenderer.Viewport.CenterPosition);
 					using (new PerfSample("render_world"))
 						worldRenderer.Draw();

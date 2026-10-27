@@ -21,24 +21,47 @@ MapScrollRight: D
 	Types: Viewport
 	Contexts: Player, Spectator, Editor
 
-SelectUnitsByType:
+SelectUnitsByType: UNKNOWN
 	Description: Select units by type
 	Types: World
 	Contexts: Player, Spectator
 
-AttackMove:
+AttackMove: UNKNOWN
 	Description: Attack move
 	Types: World
 	Contexts: Player
 
-Stop:
+Stop: UNKNOWN
 	Description: Stop
 	Types: World
 	Contexts: Player
 
-Guard:
+Guard: UNKNOWN
 	Description: Guard
 	Types: World
+	Contexts: Player
+
+# Q/E turn the perspective camera, as in the Godot prototype (game-studio src/camera/rts_camera.gd).
+# Q was SelectAllUnits and E was Evacuate (common|hotkeys/game.yaml); both are unbound so the keys are
+# free, and both stay rebindable in Settings > Hotkeys.
+CameraRotateLeft: Q
+	Description: Rotate camera left
+	Types: Viewport
+	Contexts: Player, Spectator
+
+CameraRotateRight: E
+	Description: Rotate camera right
+	Types: Viewport
+	Contexts: Player, Spectator
+
+SelectAllUnits: UNKNOWN
+	Description: Select all combat units
+	Types: World
+	Contexts: Player, Spectator
+
+Evacuate: UNKNOWN
+	Description: Evacuate (map edge, refund)
+	Types: Unit
 	Contexts: Player
 
 # Y/U/I is the contiguous free run on the top row and matches the tab order.
