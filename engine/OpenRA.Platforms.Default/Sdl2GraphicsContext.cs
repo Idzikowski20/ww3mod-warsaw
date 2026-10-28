@@ -198,6 +198,13 @@ namespace OpenRA.Platforms.Default
 			OpenGL.CheckGLError();
 		}
 
+		public void SetDepthWrite(bool enabled)
+		{
+			VerifyThreadAffinity();
+			OpenGL.glDepthMask(enabled);
+			OpenGL.CheckGLError();
+		}
+
 		public void ClearDepthBuffer()
 		{
 			VerifyThreadAffinity();

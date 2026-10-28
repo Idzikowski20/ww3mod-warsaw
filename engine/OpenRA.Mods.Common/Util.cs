@@ -74,6 +74,48 @@ namespace OpenRA.Mods.Common
 		}
 
 		// Overloaded TickFacing with inertia for WAngle
+		/// <summary>Sub-WAngle resolution of <see cref="TickFacingEased"/>: positions and speeds are in 1/FacingFine WAngle.</summary>
+		public const int FacingFine = 256;
+
+		/// <summary>
+		/// One tick of a drive that spins up and brakes: speed grows by at most acceleration a tick toward maxSpeed,
+		/// and is held below sqrt(2 * acceleration * distance) so it stops on the desired facing without overshoot.
+		/// position, speed, maxSpeed and acceleration are in 1/<see cref="FacingFine"/> WAngle (a tick); speed is
+		/// signed (+ = increasing angle). Returns the new position, wrapped to 0..1024 * FacingFine.
+		/// </summary>
+		public static int TickFacingEased(int position, WAngle desiredFacing, ref int speed, int maxSpeed, int acceleration)
+		{
+			const int Turn = 1024 * FacingFine;
+			var error = (desiredFacing.Angle * FacingFine - position) % Turn;
+			if (error >= Turn / 2)
+				error -= Turn;
+			else if (error < -Turn / 2)
+				error += Turn;
+
+			acceleration = Math.Max(1, acceleration);
+			var distance = Math.Abs(error);
+
+			// Close enough to stop this tick from a crawl: settle exactly.
+			if (distance <= acceleration && Math.Abs(speed) <= acceleration)
+			{
+				speed = 0;
+				return desiredFacing.Angle * FacingFine;
+			}
+
+			var braking = (int)Math.Sqrt(2.0 * acceleration * distance);
+			var target = Math.Sign(error) * Math.Min(maxSpeed, braking);
+			speed += Math.Clamp(target - speed, -acceleration, acceleration);
+
+			// Never step past the target (the braking curve is integer-rounded).
+			if (Math.Sign(speed) == Math.Sign(error) && Math.Abs(speed) >= distance)
+			{
+				speed = 0;
+				return desiredFacing.Angle * FacingFine;
+			}
+
+			return ((position + speed) % Turn + Turn) % Turn;
+		}
+
 		public static WAngle TickFacing(WAngle facing, WAngle desiredFacing, WAngle step, WAngle currentRotationSpeed, WAngle rotationAcceleration, WAngle maxRotationSpeed, out WAngle newRotationSpeed)
 		{
 			var delta = (desiredFacing - facing).Angle;

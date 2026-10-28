@@ -23,11 +23,16 @@ namespace OpenRA.Mods.Common.Graphics
 		readonly bool displayExtra;
 		readonly Rectangle decorationBounds;
 
-		public SelectionBarsAnnotationRenderable(Actor actor, Rectangle decorationBounds, bool displayHealth, bool displayExtra)
+		// decorationBounds is in view px rather than world px (the perspective camera's unit marker).
+		readonly bool viewSpace;
+
+		public SelectionBarsAnnotationRenderable(Actor actor, Rectangle decorationBounds, bool displayHealth, bool displayExtra,
+			bool viewSpace = false)
 			: this(actor.CenterPosition, actor, decorationBounds)
 		{
 			this.displayHealth = displayHealth;
 			this.displayExtra = displayExtra;
+			this.viewSpace = viewSpace;
 		}
 
 		public SelectionBarsAnnotationRenderable(WPos pos, Actor actor, Rectangle decorationBounds)
@@ -162,8 +167,13 @@ namespace OpenRA.Mods.Common.Graphics
 				return;
 
 			var health = actor.TraitOrDefault<IHealth>();
-			var start = wr.Viewport.WorldToViewPx(new float2(decorationBounds.Left + 1, decorationBounds.Bottom));
-			var end = wr.Viewport.WorldToViewPx(new float2(decorationBounds.Right - 1, decorationBounds.Bottom));
+			var start = new int2(decorationBounds.Left + 1, decorationBounds.Bottom);
+			var end = new int2(decorationBounds.Right - 1, decorationBounds.Bottom);
+			if (!viewSpace)
+			{
+				start = wr.Viewport.WorldToViewPx(start.ToFloat2());
+				end = wr.Viewport.WorldToViewPx(end.ToFloat2());
+			}
 
 			// WW3MOD HAS NO HEALTH BAR. This call was commented out deliberately in e670ab96 on
 			// 2024-08-13 and the mod has shipped without one ever since; unit health is read from the

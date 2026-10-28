@@ -88,7 +88,8 @@ namespace OpenRA.Mods.Common.Traits.Render
 				subtractDAT = () => new WVec(0, 0, -self.World.Map.DistanceAboveTerrain(self.CenterPosition).Length);
 
 			DefaultAnimation = new Animation(init.World, rs.GetImage(self), baseFacing, Paused);
-			rs.Add(new AnimationWithOffset(DefaultAnimation, subtractDAT, () => IsTraitDisabled, info.ZOffset), info.Palette, info.IsPlayerPalette);
+			var meshHides = WithMeshBody.HidesSprites(init.Self);
+			rs.Add(new AnimationWithOffset(DefaultAnimation, subtractDAT, () => IsTraitDisabled || meshHides(), info.ZOffset), info.Palette, info.IsPlayerPalette);
 
 			// Cache the bounds from the default sequence to avoid flickering when the animation changes
 			boundsAnimation = new Animation(init.World, rs.GetImage(self), baseFacing, Paused);

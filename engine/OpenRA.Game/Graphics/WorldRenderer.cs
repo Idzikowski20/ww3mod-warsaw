@@ -392,14 +392,29 @@ namespace OpenRA.Graphics
 
 			Game.Renderer.Flush();
 
+			// Perspective camera: the depth buffer goes on once, before the actors, and stays on until the
+			// overlays. Unit models (Graphics/GltfModel.cs) drawn among the actors and the city meshes after
+			// them write depth, so either hides the other. The flat 2D world lies on the ground plane in
+			// painter's order: its sprites test depth (a model in front hides them) but never write it, or
+			// coplanar sprites would z-fight. Fog and shroud quads later stay behind the meshes.
+			var meshDepth = Viewport.Is3D && !enableDepthBuffer;
+			if (meshDepth)
+			{
+				Game.Renderer.Context.EnableDepthBuffer();
+				Game.Renderer.Context.SetDepthWrite(false);
+			}
+
 			for (var i = 0; i < preparedRenderables.Count; i++)
 				preparedRenderables[i].Render(this);
 
-			// The 2D world is a plane at depth-free painter's order; meshes stand on it. Depth stays on
-			// until the overlays so fog and shroud quads on the ground stay behind the buildings.
+			if (meshDepth)
+			{
+				Game.Renderer.Flush();
+				Game.Renderer.Context.SetDepthWrite(true);
+			}
+
 			if (draw3D)
 			{
-				Game.Renderer.EnableDepthBuffer();
 				foreach (var r in renderers3D)
 					r.RenderMeshes(this);
 
@@ -459,7 +474,7 @@ namespace OpenRA.Graphics
 			if (World.Type != WorldType.Editor)
 				DrawBeyondMapActorUnexplored();
 
-			if (enableDepthBuffer || draw3D)
+			if (enableDepthBuffer || meshDepth)
 				Game.Renderer.Context.DisableDepthBuffer();
 
 			Game.Renderer.DisableScissor();

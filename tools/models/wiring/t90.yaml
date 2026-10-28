@@ -1,0 +1,16 @@
+t90:
+	WithMeshBody:
+		Model: t90.glb
+		Scale: 2
+		TurretNodes:
+			turret: primary
+	# Turret pivot and muzzle where the model has them (tools/models/muzzle.py t90.glb 2).
+	Turreted:
+		Offset: -271,-15,336
+	Armament@1:
+		LocalOffset: 1504,-19,94
+
+t90.husk:
+	WithMeshBody:
+		Model: t90-wreck.glb
+		Scale: 2

@@ -1313,7 +1313,10 @@ GUN:
 	Targetable:
 		TargetTypes: Ground, Structure, Defense, Heavy, C4
 	Turreted:
-		TurnSpeed: 50
+		# Real traverse: a T-90 turret on an emplacement: as t90. 24 deg/s = 4 WAngle a tick at 16.67 ticks/s
+		# (23.4 deg/s), spinning up over 8 ticks (0.48 s).
+		TurnSpeed: 4
+		TurnSpinUpTicks: 8
 		InitialFacing: 192
 	Armament:
 		Weapon: TankRound.t90

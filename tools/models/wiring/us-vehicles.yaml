@@ -1,0 +1,141 @@
+# us-vehicles: US Army ground vehicles. Fragment for mods/ww3mod/rules/models-3d.yaml (tools/models/wire.py).
+# Models: tools/models/units/<model>.py; credits: us-vehicles-credits.md. Wheeled units (humvee,
+# strykershorad, HIMARS) have wheel_<n> nodes turned by the move clip; idle holds them still.
+# Turreted Offset / Armament@1 LocalOffset put the turret pivot and muzzle where the model has them
+# (tools/models/muzzle.py where the model has a barrel node, else measured on the model).
+
+humvee:
+	WithMeshBody:
+		Model: humvee.glb
+		Scale: 2
+		TurretNodes:
+			turret: primary
+	# Turret pivot and muzzle from the model (M240 muzzle on the roof ring mount).
+	Turreted:
+		Offset: -90,0,456
+	Armament@1:
+		LocalOffset: 298,0,136
+
+humvee.husk:
+	WithMeshBody:
+		Model: humvee-wreck.glb
+		Scale: 2
+
+m113:
+	WithMeshBody:
+		Model: m113.glb
+		Scale: 2
+		TurretNodes:
+			turret: primary
+	# Turret pivot and muzzle from the model (M2 muzzle on the cupola).
+	Turreted:
+		Offset: -38,64,468
+	Armament@1:
+		LocalOffset: 454,0,143
+
+m113.husk:
+	WithMeshBody:
+		Model: m113-wreck.glb
+		Scale: 2
+
+bradley:
+	WithMeshBody:
+		Model: bradley.glb
+		Scale: 2
+		TurretNodes:
+			turret: primary
+	# Turret pivot and muzzle from the model (muzzle.py).
+	Turreted:
+		Offset: -102,38,517
+	Armament@1:
+		LocalOffset: 708,-8,128
+
+bradley.husk:
+	WithMeshBody:
+		Model: bradley-wreck.glb
+		Scale: 2
+
+abrams:
+	WithMeshBody:
+		Model: abrams.glb
+		Scale: 2
+		TurretNodes:
+			turret: primary
+	# Turret pivot and muzzle from the model (muzzle.py).
+	Turreted:
+		Offset: -154,0,415
+	Armament@1:
+		LocalOffset: 1404,0,118
+
+abrams.husk:
+	WithMeshBody:
+		Model: abrams-wreck.glb
+		Scale: 2
+
+m109:
+	WithMeshBody:
+		Model: m109.glb
+		Scale: 2
+		TurretNodes:
+			turret: primary
+	# Turret pivot and muzzle from the model (muzzle.py).
+	Turreted:
+		Offset: -307,0,389
+	Armament@1:
+		LocalOffset: 1475,0,74
+
+m109.husk:
+	WithMeshBody:
+		Model: m109-wreck.glb
+		Scale: 2
+
+m270:
+	WithMeshBody:
+		Model: m270.glb
+		Scale: 2
+		TurretNodes:
+			turret: primary
+	# Turret pivot and muzzle from the model (the two pods' front faces).
+	Turreted:
+		Offset: -512,0,348
+	Armament@1:
+		LocalOffset: 512,-141,497, 512,141,497
+
+m270.husk:
+	WithMeshBody:
+		Model: m270-wreck.glb
+		Scale: 2
+
+strykershorad:
+	WithMeshBody:
+		Model: strykershorad.glb
+		Scale: 2
+		TurretNodes:
+			turret: primary
+	# Turret pivot and muzzle from the model (muzzle.py; 30 mm).
+	Turreted:
+		Offset: -333,0,530
+	Armament@1:
+		LocalOffset: 622,0,92
+
+strykershorad.husk:
+	WithMeshBody:
+		Model: strykershorad-wreck.glb
+		Scale: 2
+
+HIMARS:
+	WithMeshBody:
+		Model: HIMARS.glb
+		Scale: 2
+		TurretNodes:
+			turret: primary
+	# Turret pivot and muzzle from the model (the pod's front face).
+	Turreted:
+		Offset: -384,0,294
+	Armament@1:
+		LocalOffset: 384,-64,371, 384,64,371
+
+HIMARS.husk:
+	WithMeshBody:
+		Model: HIMARS-wreck.glb
+		Scale: 2

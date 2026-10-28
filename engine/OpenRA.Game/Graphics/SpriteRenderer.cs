@@ -165,6 +165,32 @@ namespace OpenRA.Graphics
 			DrawSprite(s, ResolveTextureIndex(s, pal), location, scale, tint, alpha, rotation);
 		}
 
+		/// <summary>
+		/// Perspective camera: the sprite as an upright card facing the camera, centred on a 3D point (world px:
+		/// x east, y up, z south), spanned by the camera's right and up axes at one world px per sprite px.
+		/// Same offset and rotation as the flat sprite DrawSprite would draw.
+		/// </summary>
+		public void DrawBillboard(Sprite s, PaletteReference pal, float3 centre, float3 right, float3 up, float scale,
+			in float3 tint, float alpha, float rotation = 0f)
+		{
+			var samplers = SetRenderStateForSprite(s);
+			var size = scale * s.Size;
+			var off = scale * s.Offset;
+			float x0 = off.X - 0.5f * size.X, x1 = x0 + size.X, y0 = off.Y - 0.5f * size.Y, y1 = y0 + size.Y;
+			float sin = 0f, cos = 1f;
+			if (rotation != 0f)
+			{
+				sin = (float)Math.Sin(-rotation);
+				cos = (float)Math.Cos(-rotation);
+			}
+
+			// Sprite px: x right, y down. Rotated as FastCreateQuad rotates, then laid on the camera plane.
+			float3 Corner(float x, float y) => centre + (x * cos - y * sin) * right - (x * sin + y * cos) * up;
+			Util.FastCreateQuad(vertices, Corner(x0, y0), Corner(x1, y0), Corner(x1, y1), Corner(x0, y1), s, samplers,
+				ResolveTextureIndex(s, pal), tint, alpha, vertexCount, billboard: true);
+			vertexCount += 4;
+		}
+
 		internal void DrawSprite(Sprite s, int paletteTextureIndex, in float3 a, in float3 b, in float3 c, in float3 d, in float3 tint, float alpha)
 		{
 			var samplers = SetRenderStateForSprite(s);
@@ -255,7 +281,7 @@ namespace OpenRA.Graphics
 				return;
 
 			// Copied: the threaded context posts the array to the render thread, and the camera rewrites it next frame.
-			shader.SetMatrix("ViewProjection", (float[])camera.ViewProjection.Clone());
+			shader.SetMatrix("ViewProjection", (float[])camera.RenderViewProjection.Clone());
 			shader.SetVec("Eye", camera.Eye.X, camera.Eye.Y, camera.Eye.Z);
 			shader.SetVec("HazeRange", camera.HazeRange.X, camera.HazeRange.Y);
 			shader.SetVec("SkyColour", camera.SkyColour, 3);

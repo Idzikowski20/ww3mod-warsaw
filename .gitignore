@@ -83,3 +83,6 @@ shadows.bin
 
 # Generated city map (tools/city): built from paid/user-supplied 3D kits that must not be redistributed.
 /mods/ww3mod/maps/city-ww3/
+
+# M4 model sources (downloads, previews, scratch) - large, licences tracked in tools/models/units/*.py
+WORKSPACE/m4-refs/

@@ -45,6 +45,33 @@ namespace OpenRA.Test
 			}
 		}
 
+		// The world is drawn into a power-of-two framebuffer (here 2048x1024) of which only the screen-sized
+		// corner is shown. The matrix the shaders draw with must land a point on the same pixel of that corner
+		// as Project puts it on screen, or the drawn world and everything placed by Project (markers, the
+		// mouse ray) drift apart, by 2048/1728 = 1.19 at a 1728x918 window.
+		[TestCase(0f, 60f)]
+		[TestCase(45f, 190f)]
+		[TestCase(270f, 700f)]
+		public void RenderMatrixDrawsWhereProjectPointsInsideALargerBuffer(float yaw, float altitude)
+		{
+			var screen = new Size(1728, 918);
+			var buffer = new Size(2048, 1024);
+			var camera = new Camera3D(new PerspectiveCamera(), 3f, new Rectangle(0, 0, 3072, 3072), screen);
+			camera.SetView(yaw, altitude);
+			camera.SetBufferScale(new float2((float)screen.Width / buffer.Width, (float)screen.Height / buffer.Height));
+
+			var m = camera.RenderViewProjection;
+			foreach (var p in new[] { new float3(1536, 0, 1536), new float3(1400, 60, 1700), new float3(1700, 30, 1450) })
+			{
+				var x = m[0] * p.X + m[4] * p.Y + m[8] * p.Z + m[12];
+				var y = m[1] * p.X + m[5] * p.Y + m[9] * p.Z + m[13];
+				var w = m[3] * p.X + m[7] * p.Y + m[11] * p.Z + m[15];
+				var drawn = new float2((x / w + 1f) * 0.5f * buffer.Width, (y / w + 1f) * 0.5f * buffer.Height);
+				var projected = camera.ProjectPoint(p);
+				Assert.That((drawn - projected).Length, Is.LessThan(0.5f), $"{p}: drawn at {drawn}, projected to {projected}");
+			}
+		}
+
 		[Test]
 		public void ScreenCentreLooksAtTheTarget()
 		{

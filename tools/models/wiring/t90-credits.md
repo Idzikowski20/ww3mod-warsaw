@@ -1,0 +1,1 @@
+- "T90" by Karnage (CC-BY-4.0), https://sketchfab.com/3d-models/t90-8f577602505248f79e2b8a95f24b33fb - T-90 and its wreck, the GUN turret

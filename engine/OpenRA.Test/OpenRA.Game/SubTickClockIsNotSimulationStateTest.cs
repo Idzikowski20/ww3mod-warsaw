@@ -47,7 +47,10 @@ namespace OpenRA.Test
 		/// ISync types allowed to read the clock, and then only from an IRender* entry point. Adding
 		/// to this is the whole review gate — see the file header before you do.
 		/// </summary>
-		static readonly Type[] PermittedRenderReaders = { typeof(SubTickMotionSmoothing) };
+		// WithMeshBody (2026-10-28): reads the clock in IRender.Render to draw a 3D model between its last two
+		// ticks; the value goes into that frame's renderable and a drawn-position field only the unit marker
+		// reads. Its synced state (IsTraitDisabled) never sees it.
+		static readonly Type[] PermittedRenderReaders = { typeof(SubTickMotionSmoothing), typeof(WithMeshBody) };
 
 		static readonly Assembly[] Assemblies =
 		{

@@ -78,7 +78,10 @@ humvee:
 		TurnSpeed: 19
 		PauseOnCondition: empdisable
 	Turreted:
-		TurnSpeed: 20
+		# Real traverse: hand-traversed gunner ring, ~45 deg/s (estimate). 45 deg/s = 8 WAngle a tick at 16.67 ticks/s
+		# (46.9 deg/s), spinning up over 5 ticks (0.30 s).
+		TurnSpeed: 8
+		TurnSpinUpTicks: 5
 		Offset: 32,0,80
 	WithSpriteTurret@1:
 	Armament@1:
@@ -276,7 +279,10 @@ m113:
 		TargetFrozenActors: True
 		PauseOnCondition: empdisable
 	Turreted:
-		TurnSpeed: 25
+		# Real traverse: hand-traversed .50 cal cupola, ~45 deg/s (estimate). 45 deg/s = 8 WAngle a tick at 16.67 ticks/s
+		# (46.9 deg/s), spinning up over 5 ticks (0.30 s).
+		TurnSpeed: 8
+		TurnSpinUpTicks: 5
 		Offset: 0,0,15
 	WithSpriteTurret:
 	WithMuzzleOverlay:
@@ -368,7 +374,10 @@ bradley:
 		RequiresCondition: firing-wgm
 		Modifier: 25
 	Turreted:
-		TurnSpeed: 20
+		# Real traverse: M2/M3 Bradley: 360 deg in 6 s. 60 deg/s = 10 WAngle a tick at 16.67 ticks/s
+		# (58.6 deg/s), spinning up over 8 ticks (0.48 s).
+		TurnSpeed: 10
+		TurnSpinUpTicks: 8
 		Offset: 0,0,50
 	Armament@1:
 		Name: primary
@@ -523,7 +532,10 @@ abrams:
 		TurnSpeed: 13
 		PauseOnCondition: empdisable
 	Turreted:
-		TurnSpeed: 20
+		# Real traverse: M1A2: 360 deg in 9 s. 40 deg/s = 7 WAngle a tick at 16.67 ticks/s
+		# (41.0 deg/s), spinning up over 8 ticks (0.48 s).
+		TurnSpeed: 7
+		TurnSpinUpTicks: 8
 		Offset: 0,0,80
 	Armament@1:
 		Name: primary
@@ -650,7 +662,10 @@ m109:
 		# Real M109 Paladin turret traverses 360° in roughly 30-60 seconds.
 		# At 60ms ticks: TurnSpeed=5 ≈ 12s for 360° — slower than tanks
 		# (TurnSpeed 20-25 ≈ 2-3s) without being painfully slow in skirmish.
-		TurnSpeed: 5
+		# Real traverse: M109 family hydraulic traverse, 11 deg/s. 11 deg/s = 2 WAngle a tick at 16.67 ticks/s
+		# (11.7 deg/s), spinning up over 6 ticks (0.36 s).
+		TurnSpeed: 2
+		TurnSpinUpTicks: 6
 		# Stowed-gun travel: turret locks forward while driving, only aims when stopped.
 		RealignWhileMoving: True
 	Armament@1:
@@ -1039,7 +1054,10 @@ strykershorad:
 		Armaments: tertiary
 		Color: 00FF00
 	Turreted:
-		TurnSpeed: 20
+		# Real traverse: M-SHORAD RIwP electric turret, ~60 deg/s (estimate; no official figure). 60 deg/s = 10 WAngle a tick at 16.67 ticks/s
+		# (58.6 deg/s), spinning up over 6 ticks (0.36 s).
+		TurnSpeed: 10
+		TurnSpinUpTicks: 6
 		Offset: -250,0,80
 	Rearmable:
 		RearmActors: logisticscenter

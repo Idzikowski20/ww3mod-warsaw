@@ -1,0 +1,10 @@
+- "C-RAM" by grandsnail7000 (CC-BY-4.0), https://sketchfab.com/3d-models/c-ram-484eaa8b14cd452cb7eb9aaf600619b9 - CRAM
+- "ZU - 23, зенитная установка, ЗУ-23, зенитка" by LuckySkink9661 (CC-BY-4.0), https://sketchfab.com/3d-models/zu-23-23-fdae5a37901941fea3a02578506072a3 - AGUN and its wreck
+- "MIM-104 Patriot Surface-To-Air Missile (SAM)" by Muhamad Mirza Arrafi (CC-BY-4.0), https://sketchfab.com/3d-models/mim-104-patriot-surface-to-air-missile-sam-7a64d0af78514a159877edab1ab2bccb - SAM and its wreck
+- "USSR "S-300" SAM 5P85SE (War Thunder AF!)" by KojfDiscord (CC-BY-4.0), https://sketchfab.com/3d-models/ussr-s-300-sam-5p85se-war-thunder-af-da04a49123d143adbc1d39ac6ba6e33f - HSAM and its wreck
+- "Watch tower" by _SeF_ (CC-BY-4.0), https://sketchfab.com/3d-models/watch-tower-042f327a0f4c4fc9bf458903666bb257 - GTWR
+- "German Bunker" by Tactical_Gamer (CC-BY-4.0), https://sketchfab.com/3d-models/german-bunker-65a0b82826f440d9aef3181946881c2b - PBOX, HBOX and their wrecks
+- "T90" by Karnage (CC-BY-4.0), https://sketchfab.com/3d-models/t90-8f577602505248f79e2b8a95f24b33fb - the GUN turret and its wreck
+- "Airport" by nermin (CC-BY-4.0), https://sketchfab.com/3d-models/airport-734cef12f0a045df93fc8aa41401a123 - HPAD, AFLD and their wrecks
+- "Military/Urban Prop Set" by Neslihan Çakmak (CC-BY-4.0), https://sketchfab.com/3d-models/militaryurban-prop-set-fc57f8223fbc4ec8a10e74cd43e735f1 - sandbags, concrete barriers and tyres in AGUN, HSAM, PBOX, HBOX, HPAD, AFLD, LOGISTICSCENTER, SUPPLYROUTE, SBAG post/segment
+- "Concrete_wall_Protection" by Mehdi Shahsavan (CC-BY-4.0), https://sketchfab.com/3d-models/concrete-wall-protection-47c3c48fac3a4f0c8ca0fe61d34daff2 - BRIK post/segment, HGATE, VGATE

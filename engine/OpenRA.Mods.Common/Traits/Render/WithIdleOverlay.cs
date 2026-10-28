@@ -108,9 +108,11 @@ namespace OpenRA.Mods.Common.Traits.Render
 			else
 				overlay.PlayRepeating(RenderSprites.NormalizeSequence(overlay, self.GetDamageState(), info.Sequence));
 
+			// On a 3D model the overlay is a part the model already has (rotors, dishes, flags).
+			var meshHides = WithMeshBody.HidesSprites(self);
 			var anim = new AnimationWithOffset(overlay,
 				() => body.LocalToWorld(info.Offset.Rotate(body.QuantizeOrientation(self.Orientation))),
-				() => IsTraitDisabled,
+				() => IsTraitDisabled || meshHides(),
 				p => RenderUtils.ZOffsetFromCenter(self, p, 1));
 
 			rs.Add(anim, info.Palette, info.IsPlayerPalette);

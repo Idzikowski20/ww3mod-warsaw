@@ -10,6 +10,7 @@
 #endregion
 
 using System.Collections.Generic;
+using System.Linq;
 using OpenRA.Graphics;
 using OpenRA.Mods.Common.Graphics;
 using OpenRA.Primitives;
@@ -32,9 +33,36 @@ namespace OpenRA.Mods.Common.Traits.Render
 			interactable = self.Trait<Interactable>();
 		}
 
+		// Perspective camera: a Broken Arrow style marker floats over the model's top, and every decoration,
+		// bar and highlight is laid out on it in view px. The flat world-px bounds would sit on the ground
+		// north of a 3D model, which is what made the pips drift off the units.
+		const int MarkerWidth = 38;
+		const int MarkerHeight = 34;
+		const int MarkerGap = 6;
+		const float DefaultTopMetres = 4f;
+		WithMeshBody[] meshes;
+
+		WithMeshBody Mesh(Actor self)
+		{
+			meshes ??= self.TraitsImplementing<WithMeshBody>().ToArray();
+			return meshes.FirstOrDefault(m => !m.IsTraitDisabled);
+		}
+
+		/// <summary>The marker rectangle in view px.</summary>
+		public Rectangle MarkerBounds(Actor self, WorldRenderer wr)
+		{
+			var mesh = Mesh(self);
+			var pos = mesh?.RenderPosition(self) ?? self.CenterPosition;
+			var px = (float)wr.TileSize.Height / wr.TileScale;
+			var top = mesh?.TopPx(wr)
+				?? DefaultTopMetres * wr.TileSize.Height / Game.ModData.Manifest.Get<PerspectiveCamera>().MetresPerCell;
+			var a = wr.Viewport.WorldToViewPx3D(new float3(pos.X * px, pos.Z * px + top, pos.Y * px));
+			return new Rectangle(a.X - MarkerWidth / 2, a.Y - MarkerGap - MarkerHeight, MarkerWidth, MarkerHeight);
+		}
+
 		int2 GetDecorationPosition(Actor self, WorldRenderer wr, string pos)
 		{
-			var bounds = interactable.DecorationBounds(self, wr);
+			var bounds = wr.Viewport.Is3D ? MarkerBounds(self, wr) : interactable.DecorationBounds(self, wr);
 			switch (pos)
 			{
 				case "TopLeft": return bounds.TopLeft;
@@ -66,11 +94,25 @@ namespace OpenRA.Mods.Common.Traits.Render
 
 		protected override int2 GetDecorationOrigin(Actor self, WorldRenderer wr, string pos, int2 margin)
 		{
-			return wr.Viewport.WorldToViewPx(GetDecorationPosition(self, wr, pos)) + GetDecorationMargin(pos, margin);
+			var origin = GetDecorationPosition(self, wr, pos);
+			return (wr.Viewport.Is3D ? origin : wr.Viewport.WorldToViewPx(origin)) + GetDecorationMargin(pos, margin);
+		}
+
+		protected override IEnumerable<IRenderable> RenderMarker(Actor self, WorldRenderer wr, bool selected, bool rollover)
+		{
+			if (!wr.Viewport.Is3D || interactable is not Selectable)
+				yield break;
+
+			yield return new UnitMarkerRenderable(self, MarkerBounds(self, wr), UnitMarkerRenderable.RelationColor(self, wr),
+				MarkerIcons.Get(Mesh(self)?.Info.Model), selected, rollover);
 		}
 
 		protected override IEnumerable<IRenderable> RenderSelectionBox(Actor self, WorldRenderer wr, Color color)
 		{
+			// The marker shows selection under the perspective camera.
+			if (wr.Viewport.Is3D)
+				yield break;
+
 			var bounds = interactable.DecorationBounds(self, wr);
 			yield return new SelectionBoxAnnotationRenderable(self, bounds, color);
 		}
@@ -80,6 +122,16 @@ namespace OpenRA.Mods.Common.Traits.Render
 			// Don't render the selection bars for non-selectable actors
 			if (interactable is not Selectable || (!displayHealth && !displayExtra))
 				yield break;
+
+			if (wr.Viewport.Is3D)
+			{
+				var m = MarkerBounds(self, wr);
+				// Extra bars (reload, ...) hang under the marker's health bar.
+				var under = UnitMarkerRenderable.HealthBarGap + UnitMarkerRenderable.HealthBarHeight + 1;
+				yield return new SelectionBarsAnnotationRenderable(self, new Rectangle(m.Left, m.Top, m.Width, m.Height + under),
+					displayHealth, displayExtra, viewSpace: true);
+				yield break;
+			}
 
 			var bounds = interactable.DecorationBounds(self, wr);
 			yield return new SelectionBarsAnnotationRenderable(self, bounds, displayHealth, displayExtra);

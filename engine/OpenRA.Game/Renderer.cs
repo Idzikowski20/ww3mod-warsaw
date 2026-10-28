@@ -260,6 +260,8 @@ namespace OpenRA
 			lastMaximumViewportSize = size;
 		}
 
+		bool worldIs3D;
+
 		public void BeginWorld(Rectangle worldViewport, Camera3D camera = null)
 		{
 			if (renderType != RenderType.None)
@@ -295,6 +297,9 @@ namespace OpenRA
 			}
 
 			// Every frame: the perspective camera moves without changing worldViewport.
+			// Only the worldSprite corner of the framebuffer reaches the screen: squeeze the camera's clip space into it.
+			worldIs3D = camera != null;
+			camera?.SetBufferScale(new float2((float)worldSprite.Size.X / worldSheet.Size.Width, (float)worldSprite.Size.Y / worldSheet.Size.Height));
 			WorldSpriteRenderer.SetCamera(camera);
 
 			// WW3MOD: Enable pixel art scaling for world sprites so scaled units
@@ -321,7 +326,9 @@ namespace OpenRA
 					(int)(-screenSprite.Bounds.Height / scale) / worldSprite.Size.Y,
 					1f);
 
-				SpriteRenderer.EnablePixelArtScaling(true);
+				// The perspective world is rendered at the window's own resolution (or above) and is not pixel art:
+				// filter it smoothly onto the screen instead of the crisp pixel-art scaler.
+				SpriteRenderer.EnablePixelArtScaling(!worldIs3D);
 				RgbaSpriteRenderer.DrawSprite(worldSprite, float3.Zero, bufferScale);
 				Flush();
 				SpriteRenderer.EnablePixelArtScaling(false);
@@ -420,6 +427,9 @@ namespace OpenRA
 
 		public Size Resolution => Window.EffectiveWindowSize;
 		public Size NativeResolution => Window.NativeWindowSize;
+
+		/// <summary>The window's drawable size in physical pixels (NativeResolution is in OS-scaled ones).</summary>
+		public Size SurfaceResolution => Window.SurfaceSize;
 		public float WindowScale => Window.EffectiveWindowScale;
 		public float NativeWindowScale => Window.NativeWindowScale;
 		public GLProfile GLProfile => Window.GLProfile;

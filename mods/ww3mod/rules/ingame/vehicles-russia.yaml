@@ -104,7 +104,10 @@ btr:
 		TargetFrozenActors: True
 		PauseOnCondition: empdisable
 	Turreted:
-		TurnSpeed: 20
+		# Real traverse: BTR-82A BPPU electric turret, ~30 deg/s (estimate; no official figure). 30 deg/s = 5 WAngle a tick at 16.67 ticks/s
+		# (29.3 deg/s), spinning up over 8 ticks (0.48 s).
+		TurnSpeed: 5
+		TurnSpinUpTicks: 8
 		Offset: 100,0,120
 	WithSpriteTurret:
 	WithMuzzleOverlay:
@@ -262,7 +265,10 @@ bmp2:
 		RearmActors: logisticscenter
 		AmmoPools: primary-ammo, secondary-ammo
 	Turreted:
-		TurnSpeed: 20
+		# Real traverse: BMP-2: 360 deg in 10.28 s. 35 deg/s = 6 WAngle a tick at 16.67 ticks/s
+		# (35.2 deg/s), spinning up over 8 ticks (0.48 s).
+		TurnSpeed: 6
+		TurnSpinUpTicks: 8
 		Offset: -75,0,60
 	AttackTurreted:
 		TargetFrozenActors: True
@@ -346,7 +352,10 @@ t90:
 		TurnSpeed: 13
 		PauseOnCondition: empdisable
 	Turreted:
-		TurnSpeed: 20
+		# Real traverse: T-72/T-90 family electro-hydraulic drive, ~24 deg/s (no official T-90A figure published). 24 deg/s = 4 WAngle a tick at 16.67 ticks/s
+		# (23.4 deg/s), spinning up over 8 ticks (0.48 s).
+		TurnSpeed: 4
+		TurnSpinUpTicks: 8
 		Offset: 0,0,20
 	Armament@1:
 		Name: primary
@@ -885,7 +894,10 @@ tunguska:
 		Width: 5
 		Alpha: 50
 	Turreted:
-		TurnSpeed: 20
+		# Real traverse: 2K22 Tunguska, fast AA turret, ~60 deg/s (estimate; no official figure). 60 deg/s = 10 WAngle a tick at 16.67 ticks/s
+		# (58.6 deg/s), spinning up over 6 ticks (0.36 s).
+		TurnSpeed: 10
+		TurnSpinUpTicks: 6
 		Offset: -30,0,50
 	Armament@1:
 		Name: primary

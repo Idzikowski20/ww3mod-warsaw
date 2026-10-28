@@ -1,0 +1,263 @@
+# Aircraft (M4): helicopters and jets. Rotor nodes spin in the idle and move clips; jets have no clips.
+# A10.Airstrike and FROG.Airstrike inherit A10 / FROG and so their models. Every husk variant is listed,
+# although the .EMP / .moving ones would inherit it from their base husk.
+
+TRAN:
+	WithMeshBody:
+		Model: tran.glb
+		Scale: 2
+
+TRAN.Husk:
+	WithMeshBody:
+		Model: tran-wreck.glb
+		Scale: 2
+
+TRAN.Husk.EMP:
+	WithMeshBody:
+		Model: tran-wreck.glb
+		Scale: 2
+
+TRAN.Husk.moving:
+	WithMeshBody:
+		Model: tran-wreck.glb
+		Scale: 2
+
+TRAN.Husk.EMP.moving:
+	WithMeshBody:
+		Model: tran-wreck.glb
+		Scale: 2
+
+TRAN.Husk.ground:
+	WithMeshBody:
+		Model: tran-wreck.glb
+		Scale: 2
+
+TRAN.Husk1:
+	WithMeshBody:
+		Model: tran-wreck.glb
+		Scale: 2
+
+TRAN.Husk2:
+	WithMeshBody:
+		Model: tran-wreck.glb
+		Scale: 2
+
+littlebird:
+	WithMeshBody:
+		Model: littlebird.glb
+		Scale: 2
+
+littlebird.Husk:
+	WithMeshBody:
+		Model: littlebird-wreck.glb
+		Scale: 2
+
+littlebird.Husk.EMP:
+	WithMeshBody:
+		Model: littlebird-wreck.glb
+		Scale: 2
+
+littlebird.Husk.moving:
+	WithMeshBody:
+		Model: littlebird-wreck.glb
+		Scale: 2
+
+littlebird.Husk.EMP.moving:
+	WithMeshBody:
+		Model: littlebird-wreck.glb
+		Scale: 2
+
+littlebird.Husk.ground:
+	WithMeshBody:
+		Model: littlebird-wreck.glb
+		Scale: 2
+
+HELI:
+	WithMeshBody:
+		Model: heli.glb
+		Scale: 2
+
+HELI.Husk:
+	WithMeshBody:
+		Model: heli-wreck.glb
+		Scale: 2
+
+HELI.Husk.EMP:
+	WithMeshBody:
+		Model: heli-wreck.glb
+		Scale: 2
+
+HELI.Husk.moving:
+	WithMeshBody:
+		Model: heli-wreck.glb
+		Scale: 2
+
+HELI.Husk.EMP.moving:
+	WithMeshBody:
+		Model: heli-wreck.glb
+		Scale: 2
+
+HELI.Husk.ground:
+	WithMeshBody:
+		Model: heli-wreck.glb
+		Scale: 2
+
+A10:
+	WithMeshBody:
+		Model: a10.glb
+		Scale: 2
+
+A10.Husk:
+	WithMeshBody:
+		Model: a10-wreck.glb
+		Scale: 2
+
+A10.Husk.ground:
+	WithMeshBody:
+		Model: a10-wreck.glb
+		Scale: 2
+
+F16:
+	WithMeshBody:
+		Model: f16.glb
+		Scale: 2
+
+F16.Husk:
+	WithMeshBody:
+		Model: f16-wreck.glb
+		Scale: 2
+
+F16.Husk.ground:
+	WithMeshBody:
+		Model: f16-wreck.glb
+		Scale: 2
+
+HALO:
+	WithMeshBody:
+		Model: halo.glb
+		Scale: 2
+
+HALO.Husk:
+	WithMeshBody:
+		Model: halo-wreck.glb
+		Scale: 2
+
+HALO.Husk.EMP:
+	WithMeshBody:
+		Model: halo-wreck.glb
+		Scale: 2
+
+HALO.Husk.moving:
+	WithMeshBody:
+		Model: halo-wreck.glb
+		Scale: 2
+
+HALO.Husk.EMP.moving:
+	WithMeshBody:
+		Model: halo-wreck.glb
+		Scale: 2
+
+HALO.Husk.ground:
+	WithMeshBody:
+		Model: halo-wreck.glb
+		Scale: 2
+
+HIND:
+	WithMeshBody:
+		Model: hind.glb
+		Scale: 2
+
+HIND.Husk:
+	WithMeshBody:
+		Model: hind-wreck.glb
+		Scale: 2
+
+HIND.Husk.EMP:
+	WithMeshBody:
+		Model: hind-wreck.glb
+		Scale: 2
+
+HIND.Husk.moving:
+	WithMeshBody:
+		Model: hind-wreck.glb
+		Scale: 2
+
+HIND.Husk.EMP.moving:
+	WithMeshBody:
+		Model: hind-wreck.glb
+		Scale: 2
+
+HIND.Husk.ground:
+	WithMeshBody:
+		Model: hind-wreck.glb
+		Scale: 2
+
+MI28:
+	WithMeshBody:
+		Model: mi28.glb
+		Scale: 2
+
+MI28.Husk:
+	WithMeshBody:
+		Model: mi28-wreck.glb
+		Scale: 2
+
+MI28.Husk.EMP:
+	WithMeshBody:
+		Model: mi28-wreck.glb
+		Scale: 2
+
+MI28.Husk.moving:
+	WithMeshBody:
+		Model: mi28-wreck.glb
+		Scale: 2
+
+MI28.Husk.EMP.moving:
+	WithMeshBody:
+		Model: mi28-wreck.glb
+		Scale: 2
+
+MI28.Husk.ground:
+	WithMeshBody:
+		Model: mi28-wreck.glb
+		Scale: 2
+
+FROG:
+	WithMeshBody:
+		Model: frog.glb
+		Scale: 2
+
+FROG.Husk:
+	WithMeshBody:
+		Model: frog-wreck.glb
+		Scale: 2
+
+FROG.Husk.EMP:
+	WithMeshBody:
+		Model: frog-wreck.glb
+		Scale: 2
+
+FROG.Husk.ground:
+	WithMeshBody:
+		Model: frog-wreck.glb
+		Scale: 2
+
+MIG:
+	WithMeshBody:
+		Model: mig.glb
+		Scale: 2
+
+MIG.Husk:
+	WithMeshBody:
+		Model: mig-wreck.glb
+		Scale: 2
+
+MIG.Husk.EMP:
+	WithMeshBody:
+		Model: mig-wreck.glb
+		Scale: 2
+
+MIG.Husk.ground:
+	WithMeshBody:
+		Model: mig-wreck.glb
+		Scale: 2

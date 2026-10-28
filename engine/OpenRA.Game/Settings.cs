@@ -242,7 +242,8 @@ namespace OpenRA
 		public float MusicVolume = 0.5f;
 		public float VideoVolume = 0.5f;
 
-		public bool Shuffle = false;
+		// WW3MOD: on by default so the soundtrack plays in random order (MusicPlaylist.GetSong reads this).
+		public bool Shuffle = true;
 		public bool Repeat = false;
 
 		public string Device = null;

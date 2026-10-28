@@ -309,7 +309,13 @@ namespace OpenRA.Graphics
 				Zoom = 1f;
 				var sky = camera.SkyColour;
 				Game.Renderer.SetWorldClearColor(Color.FromArgb(255, (int)(255 * sky[0]), (int)(255 * sky[1]), (int)(255 * sky[2])));
-				Game.Renderer.SetMaximumViewportSize(Game.Renderer.NativeResolution);
+				// The world image at the window's physical resolution (times RenderScale), not the OS-scaled one:
+				// at 150% Windows scaling the world was drawn at 2/3 size and stretched, which looked jagged.
+				// The camera still works in NativeResolution px; RenderViewProjection is resolution-free.
+				var scale = Game.ModData.Manifest.Get<PerspectiveCamera>().RenderScale;
+				var surface = Game.Renderer.SurfaceResolution;
+				viewportSize = new int2((int)(surface.Width * scale), (int)(surface.Height * scale));
+				Game.Renderer.SetMaximumViewportSize(new Size(viewportSize.X, viewportSize.Y));
 				foreach (var t in worldRenderer.World.WorldActor.TraitsImplementing<INotifyViewportZoomExtentsChanged>())
 					t.ViewportZoomExtentsChanged(1f, 1f);
 
@@ -425,6 +431,12 @@ namespace OpenRA.Graphics
 				return camera.GroundAt(ViewToNative * view.ToFloat2()).ToInt2();
 
 			return (graphicSettings.UIScale / Zoom * view.ToFloat2()).ToInt2() + TopLeft;
+		}
+
+		/// <summary>Perspective camera only: view px of a point above the ground (world px x and z, height y up).</summary>
+		public int2 WorldToViewPx3D(in float3 xyz)
+		{
+			return (camera.ProjectPoint(xyz) / ViewToNative).ToInt2();
 		}
 
 		public int2 WorldToViewPx(int2 world)

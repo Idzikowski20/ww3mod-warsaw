@@ -102,7 +102,7 @@ namespace OpenRA.Mods.Common.Traits
 
 		public void Render(Camera3D camera, float[] light, float[] ambient, float[] diffuse)
 		{
-			shader.SetMatrix("ViewProjection", (float[])camera.ViewProjection.Clone());
+			shader.SetMatrix("ViewProjection", (float[])camera.RenderViewProjection.Clone());
 			shader.SetVec("LightDirection", light, 3);
 			shader.SetVec("AmbientLight", ambient, 3);
 			shader.SetVec("DiffuseLight", diffuse, 3);

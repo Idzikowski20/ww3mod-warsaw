@@ -107,6 +107,9 @@ namespace OpenRA
 		void EnableDepthBuffer();
 		void DisableDepthBuffer();
 		void ClearDepthBuffer();
+
+		/// <summary>Whether drawing writes the depth buffer (it still tests it while enabled). On by default.</summary>
+		void SetDepthWrite(bool enabled);
 		void SetBlendMode(BlendMode mode);
 		void SetVSyncEnabled(bool enabled);
 		string GLVersion { get; }
