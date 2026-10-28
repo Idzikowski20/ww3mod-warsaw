@@ -807,7 +807,12 @@ namespace OpenRA.Mods.Common.Widgets.Logic
 			// then replays skirmish.<mod>.yaml from the support dir and issues a server "map" command,
 			// silently overriding it ("changed the map to <last-played>" in lobby chat). screenshot-lobby.sh
 			// moves that file aside for the run; if the seed "doesn't work", check that file before this code.
-			var initialUid = modData.MapCache.PickLastModifiedMap(MapVisibility.Lobby) ?? Game.Settings.Server.Map;
+			// The mod's main map (mod.yaml MainMap) comes before the last-played one; a map just saved in the
+			// editor still wins, so editing and then testing a map keeps working.
+			var mainMap = modData.Manifest.Get<MainMap>().Map;
+			var initialUid = modData.MapCache.PickLastModifiedMap(MapVisibility.Lobby)
+				?? (string.IsNullOrEmpty(mainMap) ? null : ResolveLobbyMapId(mainMap))
+				?? Game.Settings.Server.Map;
 			if (TestMode.IsActive && !string.IsNullOrEmpty(TestMode.LaunchLobbyMap))
 			{
 				var resolved = ResolveLobbyMapId(TestMode.LaunchLobbyMap);

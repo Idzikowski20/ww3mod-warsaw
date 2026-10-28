@@ -455,6 +455,11 @@ namespace OpenRA
 			return Context.CreateTexture();
 		}
 
+		public IIndexBuffer CreateIndexBuffer(uint[] indices)
+		{
+			return Context.CreateIndexBuffer(indices);
+		}
+
 		public IVertexBuffer<T> CreateVertexBuffer<T>(int length) where T : struct
 		{
 			return Context.CreateVertexBuffer<T>(length);

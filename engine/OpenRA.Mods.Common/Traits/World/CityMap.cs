@@ -25,8 +25,16 @@ namespace OpenRA.Mods.Common.Traits
 		"Each mesh belongs to a CityBuilding actor, which blocks its cells and hides the mesh when it is removed.")]
 	public class CityMapInfo : TraitInfo
 	{
-		[Desc("Building meshes and footprints (format in build_city.py).")]
+		[Desc("Building meshes and footprints (format in build_city.py). Empty or missing = none.")]
 		public readonly string Meshes = "buildings.mesh";
+
+		[Desc("Placed textured city models and their atlas (tools/city/build_city_map.py). Missing = none.")]
+		public readonly string Scene = "scene.mesh";
+		public readonly string SceneAtlas = "scene_atlas.png";
+
+		[Desc("Light on the scene models, whose textures carry no baked shading.")]
+		public readonly float[] SceneAmbientLight = { 0.58f, 0.58f, 0.62f };
+		public readonly float[] SceneDiffuseLight = { 0.62f, 0.58f, 0.50f };
 
 		[Desc("Ground image stretched over the map's playable bounds. Empty = draw the terrain tiles instead.")]
 		public readonly string Ground = "ground.png";
@@ -72,6 +80,7 @@ namespace OpenRA.Mods.Common.Traits
 		readonly Sheet roofs;
 		readonly ITexture styleTable;
 		readonly CellLayer<float> roofs3D;
+		readonly CityScene scene;
 
 		// Streets (all null when the map has none).
 		readonly IVertexBuffer<MeshVertex> streetGround;
@@ -89,10 +98,13 @@ namespace OpenRA.Mods.Common.Traits
 		{
 			this.info = info;
 
-			MeshVertex[] vertices;
-			float[] styles;
-			using (var s = world.Map.Open(info.Meshes))
-				(styles, footprints, ranges, vertices) = Read(s);
+			var vertices = Array.Empty<MeshVertex>();
+			var styles = Array.Empty<float>();
+			footprints = Array.Empty<CPos[]>();
+			ranges = Array.Empty<(int, int)>();
+			if (!string.IsNullOrEmpty(info.Meshes) && world.Map.Exists(info.Meshes))
+				using (var s = world.Map.Open(info.Meshes))
+					(styles, footprints, ranges, vertices) = Read(s);
 
 			// (width, upper, ground) per style as one RGBA16F texel each, read with texelFetch.
 			var width = Exts.NextPowerOf2(Math.Max(styles.Length / 3, 1));
@@ -104,8 +116,8 @@ namespace OpenRA.Mods.Common.Traits
 			styleTable.ScaleFilter = TextureScaleFilter.Nearest;
 			styleTable.SetFloatData(table, width, 1);
 
-			facades = LoadMipmapped(world, info.Facades);
-			roofs = LoadMipmapped(world, info.Roofs);
+			facades = Exists(world, info.Facades) ? LoadMipmapped(world, info.Facades) : null;
+			roofs = Exists(world, info.Roofs) ? LoadMipmapped(world, info.Roofs) : null;
 
 			visible = new bool[ranges.Length];
 			Array.Fill(visible, true);
@@ -124,8 +136,18 @@ namespace OpenRA.Mods.Common.Traits
 						roofs3D[c] = Math.Max(roofs3D[c], top);
 			}
 
-			vertexBuffer = Game.Renderer.CreateVertexBuffer<MeshVertex>(vertices.Length);
-			vertexBuffer.SetData(vertices, vertices.Length);
+			vertexBuffer = Game.Renderer.CreateVertexBuffer<MeshVertex>(Math.Max(vertices.Length, 1));
+			if (vertices.Length > 0)
+				vertexBuffer.SetData(vertices, vertices.Length);
+
+			if (Exists(world, info.Scene))
+			{
+				scene = new CityScene(world, info.Scene, info.SceneAtlas);
+				for (var y = 0; y < scene.CellsHigh; y++)
+					for (var x = 0; x < scene.CellsWide; x++)
+						if (roofs3D.Contains(new CPos(x, y)))
+							roofs3D[new CPos(x, y)] = Math.Max(roofs3D[new CPos(x, y)], scene.CellHeights[y * scene.CellsWide + x]);
+			}
 			shader = Game.Renderer.CreateShader(new MeshShaderBindings());
 
 			// Direction towards the sun in the camera frame (x east, y up, z south).
@@ -230,6 +252,11 @@ namespace OpenRA.Mods.Common.Traits
 			return (sizes, ground, models.ToArray(), ranges, instances, groups.ToArray());
 		}
 
+		static bool Exists(World world, string filename)
+		{
+			return !string.IsNullOrEmpty(filename) && world.Map.Exists(filename);
+		}
+
 		static Sheet LoadMipmapped(World world, string filename)
 		{
 			using var s = world.Map.Open(filename);
@@ -326,8 +353,12 @@ namespace OpenRA.Mods.Common.Traits
 
 		void SetMeshTextures()
 		{
-			shader.SetTexture("Facades", facades.GetTexture());
-			shader.SetTexture("Roofs", roofs.GetTexture());
+			if (facades != null)
+				shader.SetTexture("Facades", facades.GetTexture());
+
+			if (roofs != null)
+				shader.SetTexture("Roofs", roofs.GetTexture());
+
 			shader.SetTexture("StyleTable", styleTable);
 			shader.SetVec("AtlasGrid", info.FacadeAtlasGrid);
 			if (surfaces != null)
@@ -397,6 +428,8 @@ namespace OpenRA.Mods.Common.Traits
 				start = -1;
 			}
 
+			scene?.Render(camera, light, info.SceneAmbientLight, info.SceneDiffuseLight);
+
 			if (propShader == null)
 				return;
 
@@ -417,8 +450,9 @@ namespace OpenRA.Mods.Common.Traits
 
 			vertexBuffer.Dispose();
 			ground?.Sheet.Dispose();
-			facades.Dispose();
-			roofs.Dispose();
+			facades?.Dispose();
+			roofs?.Dispose();
+			scene?.Dispose();
 			styleTable.Dispose();
 			streetGround?.Dispose();
 			propVertices?.Dispose();

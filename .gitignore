@@ -80,3 +80,6 @@ shadows.bin
 # gate-557c38d7.log was 24 MB of merge-gate output for an already-merged
 # commit; the gate's verdict belongs in the commit message, not the packfile.
 /WORKSPACE/gate-*.log
+
+# Generated city map (tools/city): built from paid/user-supplied 3D kits that must not be redistributed.
+/mods/ww3mod/maps/city-ww3/

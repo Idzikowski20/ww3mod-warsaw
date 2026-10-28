@@ -61,4 +61,36 @@ namespace OpenRA.Graphics
 		public PropShaderBindings()
 			: base("prop", "mesh") { }
 	}
+
+	/// <summary>A textured city-model vertex (metres scaled to world px): UV repeats inside Rect, an atlas rectangle.</summary>
+	[StructLayout(LayoutKind.Sequential)]
+	public readonly struct SceneVertex
+	{
+		public readonly float X, Y, Z;
+		public readonly float NX, NY, NZ;
+		public readonly float U, V;
+		public readonly float RectX, RectY, RectW, RectH;
+
+		public SceneVertex(float x, float y, float z, float nx, float ny, float nz, float u, float v, float rx, float ry, float rw, float rh)
+		{
+			X = x; Y = y; Z = z;
+			NX = nx; NY = ny; NZ = nz;
+			U = u; V = v;
+			RectX = rx; RectY = ry; RectW = rw; RectH = rh;
+		}
+	}
+
+	public sealed class SceneShaderBindings : ShaderBindings
+	{
+		public SceneShaderBindings()
+			: base("scene") { }
+
+		public override ShaderVertexAttribute[] Attributes { get; } = new[]
+		{
+			new ShaderVertexAttribute("aVertexPosition", ShaderVertexAttributeType.Float, 3, 0),
+			new ShaderVertexAttribute("aVertexNormal", ShaderVertexAttributeType.Float, 3, 12),
+			new ShaderVertexAttribute("aVertexTexCoord", ShaderVertexAttributeType.Float, 2, 24),
+			new ShaderVertexAttribute("aVertexRect", ShaderVertexAttributeType.Float, 4, 32),
+		};
+	}
 }

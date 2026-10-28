@@ -85,6 +85,11 @@ FileSystem: DefaultFileSystem
 
 		ww3mod|uibits
 
+# The map a new skirmish starts on (folder or title). city-ww3 is built locally by tools/city (see its README);
+# without it the engine picks as before.
+MainMap:
+	Map: city-ww3
+
 MapFolders:
 	ww3mod|maps: System
 	~^SupportDir|maps/ww3mod: User
