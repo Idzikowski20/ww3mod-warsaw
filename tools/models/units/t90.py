@@ -1,5 +1,6 @@
 """T-90A from "T90" by Karnage (CC-BY-4.0, sketchfab.com/3d-models/t90-8f577602505248f79e2b8a95f24b33fb).
-Real length with the gun forward: 9.63 m. The source is one mesh: turret and gun are cut out by position."""
+Real length with the gun forward: 9.63 m. The source is one mesh: turret and gun are cut out by position.
+Track belts: the scrolling track texture (convert.track_belts, tools/models/wiring/tracks-credits.md)."""
 
 import convert
 from lib import box, mat
@@ -22,9 +23,18 @@ GUN = _p(0.255, -0.2, 1.35)
 GUN_X, GUN_Z = GUN[0], GUN[2]
 
 
+def _belt(c, n):
+    """A track belt face (normalized model space): between the hull side and the skirt, below the fenders, from
+    the sprocket (rear) to the idler; not a side face (belt edges, wheel discs) and not a skirt bracket (a face
+    across the run away from the wraps). Road wheels inside the belt are left out by track_belts' depth."""
+    return (1.12 < abs(c.x) < 1.81 and -3.9 < c.y < 2.15 and c.z < 1.16 and abs(n.x) < 0.5
+            and (abs(n.y) < 0.7 or c.y < -3.4 or c.y > 1.85))
+
+
 def build(wreck=False):
     o = convert.load(SOURCE)
     convert.normalize(o, front="-Y", length=LENGTH)
+    convert.track_belts(o, _belt)
     r2 = (1.25 * K) ** 2
     parts = convert.split(o, {
         "barrel": lambda c: abs(c.x - GUN_X) < 0.2 and abs(c.z - GUN_Z) < 0.2 and c.y > GUN[1] - 0.15,

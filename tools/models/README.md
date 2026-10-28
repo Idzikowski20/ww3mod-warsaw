@@ -52,6 +52,9 @@ weathered with grime, rain streaks, AO in crevices, worn edges, and dust/mud ris
   pivots at the turret ring centre and the gun trunnion (`convert.pivot`). Turrets turn about +Z.
 - Material named `team…` = player colour (flat colour multiplied by the player colour, not baked).
   Material named `outline…` = the outline shell (added by finish; do not create it yourself).
+- Tracked vehicles: `convert.track_belts(o, select)` moves the belt faces into material `track` (the tiling
+  `textures/track_tile.png`, not baked) with UVs along the belt; the engine scrolls it by the distance driven
+  (`WithMeshBody.TrackTileLength`, default 0.7 m). See `units/t90.py`.
 - Every model shows some player colour: e.g. side stripes + a roof panel (vehicles), a tail band or fin
   (aircraft), a helmet band or armband (infantry), a panel or flag (defences).
 - Animations: glTF clips named `idle`, `move`, `attack` (seconds, looping; attack plays once per shot).

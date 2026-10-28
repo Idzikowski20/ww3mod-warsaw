@@ -15,6 +15,11 @@ uniform vec3 AmbientLight, DiffuseLight;
 uniform bool Outline;
 uniform bool FrontIsBack;
 
+// Track belt (a material named "track*"): its own tiling texture, v running along the belt in tiles, scrolled
+// by the distance driven. Wrapped here per fragment, as OpenRA textures clamp.
+uniform bool Track;
+uniform float TrackScroll;
+
 in vec3 vNormal;
 in vec2 vTexCoord;
 in vec4 vColor;
@@ -39,7 +44,7 @@ void main()
 
 	vec4 c = vColor;
 	if (UseTexture)
-		c *= texture(DiffuseTexture, vTexCoord);
+		c *= texture(DiffuseTexture, Track ? vec2(vTexCoord.x, fract(vTexCoord.y + TrackScroll)) : vTexCoord);
 
 	// Alpha below 0.5 marks player-colour paint: the colour is a shade multiplied by the team colour.
 	vec3 albedo = c.a < 0.5 ? c.rgb * TeamColor : c.rgb;

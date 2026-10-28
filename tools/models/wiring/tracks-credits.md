@@ -1,0 +1,1 @@
+- "Animated Tank Tracks Rig" by Patrik (BlenderKit, Royalty Free licence), https://www.blenderkit.com/ (asset 38452ccd-7a06-4fe9-9706-ff6eb5a63561) - the track texture tools/models/textures/track_tile.png (rendered by track_tile.py), on the T-90's track belts

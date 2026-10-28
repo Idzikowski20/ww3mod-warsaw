@@ -219,3 +219,93 @@ def recolor(o, rgb, amount=0.6):
         nt.links.new(src, a2)
         nt.links.new(next(x for x in tint.outputs if x.type == "RGBA"), b2)
         nt.links.new(next(x for x in blend.outputs if x.type == "RGBA"), bsdf.inputs["Base Color"])
+
+
+TEXTURES = os.path.join(os.path.dirname(os.path.abspath(__file__)), "textures")
+
+
+def track_belts(o, select, tile_image="track_tile.png", tile_length=0.7, depth=0.1):
+    """Gives o's track belts the scrolling track texture (engine: material "track*", gltf.frag TrackScroll).
+    The faces select(face_centre, face_normal) picks (mesh space, both belts) move into material "track" textured
+    with tile_image (a file in tools/models/textures/, or a path), with UVs laid for the scroll: u across the belt,
+    v the arc length round the belt's side profile in tiles. The profile is the outline (convex hull) of each
+    belt's (y, z) face centres (centres: a big face reaching out of the belt does not bend it), so the top run,
+    the bottom run and the wraps round sprocket and idler are one strip; picked faces deeper than depth inside
+    it (road wheels) keep their material. The tile is stretched a little so
+    a whole number fits round the belt (no seam). Returns that tile length, model metres."""
+    from mathutils import geometry
+    me = o.data
+    m = bpy.data.materials.get("track")
+    if m is None:
+        m = bpy.data.materials.new("track")
+        m.use_nodes = True
+        tex = m.node_tree.nodes.new("ShaderNodeTexImage")
+        tex.image = bpy.data.images.load(os.path.join(TEXTURES, tile_image), check_existing=True)
+        tex.image.colorspace_settings.name = "Non-Color"  # display values, shown as they are
+        bsdf = next(n for n in m.node_tree.nodes if n.type == "BSDF_PRINCIPLED")
+        m.node_tree.links.new(tex.outputs["Color"], bsdf.inputs["Base Color"])
+    if m.name not in me.materials:
+        me.materials.append(m)
+    slot = list(me.materials).index(m)
+    if not me.uv_layers:
+        me.uv_layers.new()
+    uv = me.uv_layers[0].data  # lib.bake keeps this layer's UVs on track faces
+    V = me.vertices
+    chosen = [p for p in me.polygons if select(p.center, p.normal)]
+    tile = tile_length
+    for side in (1, -1):
+        faces = [p for p in chosen if p.center.x * side > 0]
+        if not faces:
+            continue
+        pts = [p.center for p in faces]
+        # The belt's axis in plan (a source can sit a degree or two off +Y): the centres' principal axis.
+        n = len(pts)
+        mx, my = sum(v.x for v in pts) / n, sum(v.y for v in pts) / n
+        cxx = sum((v.x - mx) ** 2 for v in pts)
+        cyy = sum((v.y - my) ** 2 for v in pts)
+        cxy = sum((v.x - mx) * (v.y - my) for v in pts)
+        a = 0.5 * math.atan2(2 * cxy, cxx - cyy)
+        ca, sa = (math.cos(a), math.sin(a)) if math.sin(a) >= 0 else (-math.cos(a), -math.sin(a))
+
+        def frame(v):  # (along the belt, forward; across it, ~x; z)
+            return v.x * ca + v.y * sa, v.x * sa - v.y * ca, v.z
+
+        prof = [Vector((f[0], f[2])) for f in map(frame, pts)]
+        hull = [prof[i] for i in geometry.convex_hull_2d(prof)]
+        # Counter-clockwise seen from +x (forward to the right, z up): the top run runs front to back.
+        if sum(h.x * k.y - k.x * h.y for h, k in zip(hull, hull[1:] + hull[:1])) < 0:
+            hull.reverse()
+        edges = list(zip(hull, hull[1:] + hull[:1]))
+        cum = [0.0]
+        for h, k in edges:
+            cum.append(cum[-1] + (k - h).length)
+        perimeter = cum[-1]
+        tile = perimeter / max(1, round(perimeter / tile_length))
+
+        def arc(f):  # (arc length of the outline point nearest f, distance to it)
+            q = Vector((f[0], f[2]))
+            best = (0.0, float("inf"))
+            for i, (h, k) in enumerate(edges):
+                e = k - h
+                t = max(0.0, min(1.0, (q - h).dot(e) / e.length_squared)) if e.length_squared else 0.0
+                d = (h + e * t - q).length
+                if d < best[1]:
+                    best = (cum[i] + t * e.length, d)
+            return best
+
+        faces = [p for p in faces if arc(frame(p.center))[1] <= depth]
+        across = [frame(V[i].co)[1] for p in faces for i in p.vertices]
+        a0, a1 = min(across), max(across)
+        for p in faces:
+            p.material_index = slot
+            s0 = None
+            for li in p.loop_indices:
+                f = frame(V[me.loops[li].vertex_index].co)
+                s = arc(f)[0]
+                s0 = s if s0 is None else s0
+                s -= perimeter * round((s - s0) / perimeter)  # a face across the outline's start stays whole
+                # glTF stores 1 - v: -s here makes the engine's v run counter-clockwise, as TrackScroll expects.
+                uv[li].uv = ((f[1] - a0) / (a1 - a0), -s / tile)
+        print(f"track_belts {o.name} side {side:+d}: {len(faces)} faces, belt {perimeter:.2f} m round, "
+              f"tile {tile:.3f} m, axis {math.degrees(math.atan2(ca, sa)):+.1f} deg off +Y")
+    return tile

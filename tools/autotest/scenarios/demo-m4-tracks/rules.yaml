@@ -1,0 +1,21 @@
+Player:
+	-ConquestVictoryConditions:
+	MapLayers:
+		ExploredMapCheckboxEnabled: true
+		FogCheckboxEnabled: false
+
+World:
+	-StartGameNotification:
+	-SpawnStartingUnits:
+	-MapStartingLocations:
+	-CrateSpawner:
+	MusicPlaylist:
+		DisableWorldSounds: false
+	LuaScript:
+		Scripts: test-helpers.lua, balance-helpers.lua, demo-m4-tracks.lua
+
+# Slowed for the frames: at its real 100 the belt moves ~1.1 links a tick, so frames a whole number of ticks
+# apart alias to almost no motion. At 10 it is ~0.11 link a tick: 0.2-0.35 link between frames 0.15 s apart.
+t90:
+	Mobile:
+		Speed: 10

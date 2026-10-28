@@ -39,6 +39,9 @@ namespace OpenRA.Mods.Common.Traits.Render
 		public readonly string MoveClip = "move";
 		public readonly string AttackClip = "attack";
 
+		[Desc("Length of one tile of the track texture (material \"track*\"), model metres. 0.7: two links of a T-72-class track.")]
+		public readonly float TrackTileLength = 0.7f;
+
 		public override object Create(ActorInitializer init) { return new WithMeshBody(init.Self, this); }
 	}
 
@@ -56,6 +59,10 @@ namespace OpenRA.Mods.Common.Traits.Render
 		float lastBodyYaw, bodyYaw;
 		float[] lastTurretYaw = Array.Empty<float>(), turretYaw = Array.Empty<float>();
 		bool posed;
+
+		// Distance driven, in track tiles (signed: reversing runs it back), for the "track" parts' texture scroll.
+		// View state only, never synced; kept small by dropping whole tiles from both values.
+		float lastTrack, track;
 
 		// Where the last frame drew the model, for the unit marker. View state written only by Render.
 		WPos drawnPosition;
@@ -125,6 +132,16 @@ namespace OpenRA.Mods.Common.Traits.Render
 				Array.Copy(turretYaw, lastTurretYaw, turretYaw.Length);
 				posed = true;
 			}
+
+			// ponytail: both belts scroll by the hull's travel, so a pivot turn on the spot leaves them still
+			// (real tracks counter-rotate). Upgrade: per-belt scroll = travel +- yaw change x half the track gauge,
+			// with a TrackScroll per side (left/right track materials).
+			var moved = pos - lastPos;
+			var forward = new WVec(0, -1024, 0).Rotate(WRot.FromYaw(facing != null ? facing.Facing : WAngle.Zero));
+			var metres = moved.HorizontalLength * Game.ModData.Manifest.Get<PerspectiveCamera>().MetresPerCell / 1024f / Info.Scale;
+			var whole = MathF.Floor(track);
+			lastTrack = track - whole;
+			track = lastTrack + MathF.Sign(moved.X * forward.X + moved.Y * forward.Y) * metres / Info.TrackTileLength;
 		}
 
 		void ReadPose(Actor self)
@@ -218,7 +235,8 @@ namespace OpenRA.Mods.Common.Traits.Render
 			var model = Matrix4x4.CreateScale(metres) * Matrix4x4.CreateRotationY(drawYaw)
 				* Matrix4x4.CreateTranslation(at.X * px, at.Z * px, at.Y * px);
 
-			return new IRenderable[] { new GltfRenderable(mesh, at, model, nodes, self.OwnerColor()) };
+			var scroll = lastTrack + (track - lastTrack) * t;
+			return new IRenderable[] { new GltfRenderable(mesh, at, model, nodes, self.OwnerColor(), scroll) };
 		}
 
 		IEnumerable<Rectangle> IRender.ScreenBounds(Actor self, WorldRenderer wr)

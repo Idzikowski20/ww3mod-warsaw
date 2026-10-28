@@ -5,7 +5,8 @@ Conventions the engine relies on (engine/OpenRA.Game/Graphics/Mesh.cs, WithMeshB
 - objects become glTF nodes and keep their names: a turret is an object named "turret"
   (parented to the hull), its gun an object named "barrel" parented to the turret;
 - material "team*" is player colour (its colour is a shade, multiplied by the player colour),
-  "outline*" is the inverted-hull outline shell, added by finish().
+  "outline*" is the inverted-hull outline shell, added by finish(), "track*" a track belt
+  (convert.track_belts): its own tiling texture and UVs, not baked, scrolled by the engine.
 """
 
 import math
@@ -185,7 +186,7 @@ def strip_team(o):
         return
     area = {}
     for p in o.data.polygons:
-        if p.material_index not in team and mats[p.material_index] and not mats[p.material_index].name.startswith("outline"):
+        if p.material_index not in team and mats[p.material_index] and not mats[p.material_index].name.startswith(("outline", "track")):
             area[p.material_index] = area.get(p.material_index, 0.0) + p.area
     if not area:
         return
@@ -419,8 +420,9 @@ SOURCE_UV = "source_uv"
 
 def bake(objs, size, name, wreck=False):
     """Packs the UVs of every object in objs into one atlas and bakes their weathered colours into it
-    (one texture per model). Team and outline materials are left as they are: player colour stays a flat
-    tint the engine replaces. A downloaded model keeps its own texture as the colour source."""
+    (one texture per model). Team, outline and track materials are left as they are: player colour stays a flat
+    tint the engine replaces, a track keeps its tiling texture and UVs. A downloaded model keeps its own texture
+    as the colour source."""
     scene = bpy.context.scene
     for o in objs:
         uvs = o.data.uv_layers
@@ -438,6 +440,16 @@ def bake(objs, size, name, wreck=False):
     bpy.context.view_layer.objects.active = objs[0]
     bpy.ops.object.mode_set(mode="EDIT")
     bpy.ops.mesh.select_all(action="SELECT")
+    # Track faces stay out of the atlas: they keep their own UVs (copied back below).
+    for o in objs:
+        track = {i for i, m in enumerate(o.data.materials) if m and m.name.startswith("track")}
+        if track:
+            scene.tool_settings.mesh_select_mode = (False, False, True)
+            bm = bmesh.from_edit_mesh(o.data)
+            for f in bm.faces:
+                if f.material_index in track:
+                    f.select_set(False)
+            bmesh.update_edit_mesh(o.data)
     bpy.ops.uv.smart_project(angle_limit=math.radians(60), island_margin=0.003)
     bpy.ops.object.mode_set(mode="OBJECT")
 
@@ -450,7 +462,7 @@ def bake(objs, size, name, wreck=False):
     for o in objs:
         for slot in o.material_slots:
             m = slot.material
-            if m is None or m.name.startswith(("team", "outline")):
+            if m is None or m.name.startswith(("team", "outline", "track")):
                 continue
             if m.name not in copies:
                 bsdf = next((n for n in m.node_tree.nodes if n.type == "BSDF_PRINCIPLED"), None) if m.use_nodes else None
@@ -472,7 +484,17 @@ def bake(objs, size, name, wreck=False):
     scene.cycles.samples = 24
     scene.cycles.device = "CPU"
     scene.render.bake.margin = 4
+    # Cycles bakes every material into its active image node: the track tiles get a throwaway pixel instead.
+    held = [(n, n.image) for o in objs for m in o.data.materials if m and m.name.startswith("track")
+            for n in m.node_tree.nodes if n.type == "TEX_IMAGE"]
+    sink = bpy.data.images.new("bake_sink", 1, 1) if held else None
+    for n, _ in held:
+        n.image = sink
     bpy.ops.object.bake(type="EMIT")
+    for n, img in held:
+        n.image = img
+    if sink:
+        bpy.data.images.remove(sink)
 
     image.filepath_raw = os.path.join(tempfile.gettempdir(), image.name + ".png")
     image.file_format = "PNG"
@@ -490,8 +512,16 @@ def bake(objs, size, name, wreck=False):
     for slot in baked:
         slot.material = out
     for o in objs:
-        if SOURCE_UV in o.data.uv_layers:
-            o.data.uv_layers.remove(o.data.uv_layers[SOURCE_UV])
+        uvs = o.data.uv_layers
+        if SOURCE_UV in uvs:
+            mats = o.data.materials
+            src, dst = uvs[SOURCE_UV].data, uvs["bake"].data
+            for p in o.data.polygons:
+                m = mats[p.material_index] if mats else None
+                if m is not None and m.name.startswith("track"):
+                    for li in p.loop_indices:
+                        dst[li].uv = src[li].uv
+            uvs.remove(uvs[SOURCE_UV])
 
 
 def render_preview(glb, path, yaw=35, pitch=35, distance=13, size=640, target_z=1.0):

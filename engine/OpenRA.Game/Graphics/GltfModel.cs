@@ -59,7 +59,8 @@ namespace OpenRA.Graphics
 	/// optional embedded PNG textures, and node TRS animations. Skinning is not supported: animated
 	/// figures are built from rigid parts, each part its own node.
 	/// Materials: a name starting "team" is player-coloured (its colour is multiplied by the player
-	/// colour), a name starting "outline" is an inverted-hull outline shell.
+	/// colour), a name starting "outline" is an inverted-hull outline shell, a name starting "track" is a
+	/// track belt: its own tiling texture, scrolled along v by the distance driven (gltf.frag TrackScroll).
 	/// </summary>
 	public sealed class GltfModel
 	{
@@ -75,11 +76,11 @@ namespace OpenRA.Graphics
 		public readonly struct Part
 		{
 			public readonly int Node, Start, Count, Texture;
-			public readonly bool Outline;
+			public readonly bool Outline, Track;
 
-			public Part(int node, int start, int count, int texture, bool outline)
+			public Part(int node, int start, int count, int texture, bool outline, bool track)
 			{
-				Node = node; Start = start; Count = count; Texture = texture; Outline = outline;
+				Node = node; Start = start; Count = count; Texture = texture; Outline = outline; Track = track;
 			}
 		}
 
@@ -169,12 +170,14 @@ namespace OpenRA.Graphics
 					var texture = -1;
 					var outline = false;
 					var team = false;
+					var track = false;
 					if (prim.TryGetProperty("material", out var mi))
 					{
 						var mat = materials[mi.GetInt32()];
 						var matName = mat.TryGetProperty("name", out var mn) ? mn.GetString() : "";
 						outline = matName.StartsWith("outline", StringComparison.Ordinal);
 						team = matName.StartsWith("team", StringComparison.Ordinal);
+						track = matName.StartsWith("track", StringComparison.Ordinal);
 						if (mat.TryGetProperty("pbrMetallicRoughness", out var pbr))
 						{
 							if (pbr.TryGetProperty("baseColorFactor", out var bc))
@@ -184,7 +187,7 @@ namespace OpenRA.Graphics
 						}
 					}
 
-					parts.Add(new Part(i, vertices.Count, indices.Length, texture, outline));
+					parts.Add(new Part(i, vertices.Count, indices.Length, texture, outline, track));
 					foreach (var k in indices)
 					{
 						var p = new Vector3(pos[3 * k], pos[3 * k + 1], pos[3 * k + 2]);
@@ -474,14 +477,17 @@ namespace OpenRA.Graphics
 		readonly Matrix4x4 model;
 		readonly Matrix4x4[] nodes;
 		readonly Color teamColor;
+		readonly float trackScroll;
 
-		public GltfRenderable(GltfModel mesh, WPos pos, Matrix4x4 model, Matrix4x4[] nodes, Color teamColor)
+		/// <param name="trackScroll">Shift along v of the "track" parts' texture, in tiles (distance driven / tile length).</param>
+		public GltfRenderable(GltfModel mesh, WPos pos, Matrix4x4 model, Matrix4x4[] nodes, Color teamColor, float trackScroll = 0f)
 		{
 			this.mesh = mesh;
 			Pos = pos;
 			this.model = model;
 			this.nodes = nodes;
 			this.teamColor = teamColor;
+			this.trackScroll = trackScroll;
 		}
 
 		public WPos Pos { get; }
@@ -489,7 +495,7 @@ namespace OpenRA.Graphics
 		public bool IsDecoration => false;
 
 		public IRenderable WithZOffset(int newOffset) => this;
-		public IRenderable OffsetBy(in WVec offset) => new GltfRenderable(mesh, Pos + offset, model, nodes, teamColor);
+		public IRenderable OffsetBy(in WVec offset) => new GltfRenderable(mesh, Pos + offset, model, nodes, teamColor, trackScroll);
 		public IRenderable AsDecoration() => this;
 		public IFinalizedRenderable PrepareRender(WorldRenderer wr) => this;
 
@@ -523,6 +529,9 @@ namespace OpenRA.Graphics
 					m.M31, m.M32, m.M33, m.M34, m.M41, m.M42, m.M43, m.M44
 				});
 				shader.SetBool("Outline", part.Outline);
+				shader.SetBool("Track", part.Track);
+				if (part.Track)
+					shader.SetVec("TrackScroll", trackScroll);
 				shader.SetBool("UseTexture", part.Texture >= 0);
 				if (part.Texture >= 0)
 					shader.SetTexture("DiffuseTexture", mesh.Textures[part.Texture]);
