@@ -56,5 +56,7 @@ WORKSPACE/bugs/discovered.md merge=union
 # Unit models and their marker silhouettes (M4): about a hundred files of a few MB each, kept in Git LFS.
 mods/ww3mod/bits/models/*.glb filter=lfs diff=lfs merge=lfs -text
 mods/ww3mod/bits/models/*.png filter=lfs diff=lfs merge=lfs -text
+# Music (juanjo_sound FPS Menu Music Themes, Ogg Vorbis, ~2-4 MB each), kept in Git LFS.
+mods/ww3mod/bits/sounds/music/*.ogg filter=lfs diff=lfs merge=lfs -text
 mods/ww3mod/bits/models/* !text !filter !merge !diff
 mods/ww3mod/bits/sounds/music/*.ogg !text !filter !merge !diff
