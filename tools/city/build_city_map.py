@@ -60,7 +60,7 @@ CORNERS = [(0, 0), (3, 0), (0, 3), (3, 3)]
 
 ROOF_UP, ROOF_MIN_M, ROOF_COVER = 0.7, 2.5, 0.3   # up-facing, above this height, this share of a cell blocks it
 ROCK, CLEAR, ROAD_TILES = 216, 255, (227, 228)
-SLOT, COLOUR_CELL, ATLAS_W = 512, 8, 8192
+SLOT, COLOUR_CELL, ATLAS_W = 256, 8, 4096
 
 
 def block_centre(i, j):
