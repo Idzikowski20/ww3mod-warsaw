@@ -74,7 +74,7 @@ namespace OpenRA.Graphics
 		public static void FastCreateQuad(Vertex[] vertices,
 			in float3 a, in float3 b, in float3 c, in float3 d,
 			Sprite r, int2 samplers, int paletteTextureIndex,
-			in float3 tint, float alpha, int nv)
+			in float3 tint, float alpha, int nv, bool billboard = false)
 		{
 			float sl = 0;
 			float st = 0;
@@ -94,6 +94,9 @@ namespace OpenRA.Graphics
 				attribC |= ((byte)ss.SecondaryChannel) << 4 | 0x08;
 				attribC |= samplers.Y << 9;
 			}
+
+			if (billboard)
+				attribC |= 0x1000;
 
 			attribC |= (paletteTextureIndex & 0xFFFF) << 16;
 

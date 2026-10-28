@@ -51,9 +51,10 @@ namespace OpenRA.Mods.Common.Traits.Render
 		/// <summary>The marker rectangle in view px.</summary>
 		public Rectangle MarkerBounds(Actor self, WorldRenderer wr)
 		{
-			var pos = self.CenterPosition;
+			var mesh = Mesh(self);
+			var pos = mesh?.RenderPosition(self) ?? self.CenterPosition;
 			var px = (float)wr.TileSize.Height / wr.TileScale;
-			var top = Mesh(self)?.TopPx(wr)
+			var top = mesh?.TopPx(wr)
 				?? DefaultTopMetres * wr.TileSize.Height / Game.ModData.Manifest.Get<PerspectiveCamera>().MetresPerCell;
 			var a = wr.Viewport.WorldToViewPx3D(new float3(pos.X * px, pos.Z * px + top, pos.Y * px));
 			return new Rectangle(a.X - MarkerWidth / 2, a.Y - MarkerGap - MarkerHeight, MarkerWidth, MarkerHeight);
@@ -125,7 +126,9 @@ namespace OpenRA.Mods.Common.Traits.Render
 			if (wr.Viewport.Is3D)
 			{
 				var m = MarkerBounds(self, wr);
-				yield return new SelectionBarsAnnotationRenderable(self, new Rectangle(m.Left, m.Top, m.Width, m.Height + 3),
+				// Extra bars (reload, ...) hang under the marker's health bar.
+				var under = UnitMarkerRenderable.HealthBarGap + UnitMarkerRenderable.HealthBarHeight + 1;
+				yield return new SelectionBarsAnnotationRenderable(self, new Rectangle(m.Left, m.Top, m.Width, m.Height + under),
 					displayHealth, displayExtra, viewSpace: true);
 				yield break;
 			}

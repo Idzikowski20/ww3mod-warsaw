@@ -45,22 +45,46 @@ namespace OpenRA.Mods.Common.Traits.Render
 	public class WithMeshBody : ConditionalTrait<WithMeshBodyInfo>, IRender, IAutoMouseBounds, INotifyAttack, ITick
 	{
 		readonly GltfModel mesh;
-		readonly IFacing facing;
-		readonly IMove move;
-		readonly (int Node, Turreted Turret)[] turrets;
+		IFacing facing;
+		IMove move;
+		(int Node, Turreted Turret)[] turrets = Array.Empty<(int, Turreted)>();
 		float clipTime, attackTime = -1f;
+
+		// The last two ticks' pose, drawn interpolated by SubTickClock: the world ticks 16.67 times a second
+		// and a model stepping between ticks visibly judders (turrets most). View state only, never synced.
+		WPos lastPos, pos;
+		float lastBodyYaw, bodyYaw;
+		float[] lastTurretYaw = Array.Empty<float>(), turretYaw = Array.Empty<float>();
+		bool posed;
+
+		// Where the last frame drew the model, for the unit marker. View state written only by Render.
+		WPos drawnPosition;
 
 		public WithMeshBody(Actor self, WithMeshBodyInfo info)
 			: base(info)
 		{
 			mesh = GltfModel.Get(info.Model);
+		}
+
+		// Bound here, not in the constructor: traits are constructed in dependency order and this one does not
+		// require Turreted or the mover, so they may not exist yet when it is built (the turrets never turned).
+		protected override void Created(Actor self)
+		{
 			facing = self.TraitOrDefault<IFacing>();
 			move = self.TraitOrDefault<IMove>();
 			var all = self.TraitsImplementing<Turreted>().ToArray();
-			turrets = info.TurretNodes
+			turrets = Info.TurretNodes
 				.Select(kv => (mesh.NodeIndex(kv.Key), all.FirstOrDefault(t => t.Name == kv.Value)))
 				.Where(t => t.Item1 >= 0 && t.Item2 != null)
 				.ToArray();
+			// The sprite turret quantised the turret to its sprite's facings, which makes shells and muzzle flashes
+			// jump between 32 directions while the model's barrel turns smoothly.
+			foreach (var t in turrets)
+				t.Turret.QuantizedFacings = 0;
+
+			lastTurretYaw = new float[turrets.Length];
+			turretYaw = new float[turrets.Length];
+			base.Created(self);
 		}
 
 		/// <summary>
@@ -89,6 +113,43 @@ namespace OpenRA.Mods.Common.Traits.Render
 			clipTime += dt;
 			if (attackTime >= 0f)
 				attackTime += dt;
+
+			lastPos = pos;
+			lastBodyYaw = bodyYaw;
+			Array.Copy(turretYaw, lastTurretYaw, turretYaw.Length);
+			ReadPose(self);
+			if (!posed)
+			{
+				lastPos = pos;
+				lastBodyYaw = bodyYaw;
+				Array.Copy(turretYaw, lastTurretYaw, turretYaw.Length);
+				posed = true;
+			}
+		}
+
+		void ReadPose(Actor self)
+		{
+			pos = self.CenterPosition;
+			bodyYaw = facing != null ? Yaw(facing.Facing) : 0f;
+			for (var i = 0; i < turrets.Length; i++)
+				turretYaw[i] = Yaw(turrets[i].Turret.LocalOrientation.Yaw);
+		}
+
+		static float LerpAngle(float a, float b, float t)
+		{
+			var d = (b - a) % (2 * MathF.PI);
+			if (d > MathF.PI)
+				d -= 2 * MathF.PI;
+			else if (d < -MathF.PI)
+				d += 2 * MathF.PI;
+
+			return a + d * t;
+		}
+
+		/// <summary>Where the model was last drawn (between the last two ticks); the unit marker follows it.</summary>
+		public WPos RenderPosition(Actor self)
+		{
+			return posed ? drawnPosition : self.CenterPosition;
 		}
 
 		void INotifyAttack.Attacking(Actor self, in Target target, Armament a, Barrel barrel) { attackTime = 0f; }
@@ -124,26 +185,40 @@ namespace OpenRA.Mods.Common.Traits.Render
 			if (IsTraitDisabled || !wr.Viewport.Is3D)
 				return Enumerable.Empty<IRenderable>();
 
-			var bodyYaw = facing != null ? Yaw(facing.Facing) : 0f;
+			if (!posed)
+			{
+				ReadPose(self);
+				lastPos = pos;
+				lastBodyYaw = bodyYaw;
+				Array.Copy(turretYaw, lastTurretYaw, turretYaw.Length);
+				posed = true;
+			}
+
+			// How far between the last two ticks to draw; a paused world holds the latest pose. SubTickClock is
+			// read here, in the render entry point, and only reaches this frame's renderable and drawnPosition
+			// (view state, never synced) - SubTickClockIsNotSimulationStateTest.
+			var t = self.World.SimulationIsAdvancing ? SubTickClock.Fraction / (float)SubTickClock.One : 1f;
+			drawnPosition = lastPos + (pos - lastPos) * (int)(t * 1024) / 1024;
+			var drawYaw = LerpAngle(lastBodyYaw, bodyYaw, t);
 			Dictionary<int, float> extraYaw = null;
 			if (turrets.Length > 0)
 			{
 				extraYaw = new Dictionary<int, float>();
-				foreach (var (node, turret) in turrets)
-					extraYaw[node] = Yaw(turret.LocalOrientation.Yaw);
+				for (var i = 0; i < turrets.Length; i++)
+					extraYaw[turrets[i].Node] = LerpAngle(lastTurretYaw[i], turretYaw[i], t);
 			}
 
 			var clip = CurrentClip(out var time);
 			var nodes = mesh.WorldMatrices(clip, time, extraYaw);
 
 			// Metres to world px: the camera's scale; world px y is south, the 3D frame's z.
-			var pos = self.CenterPosition;
+			var at = drawnPosition;
 			var px = (float)wr.TileSize.Height / wr.TileScale;
 			var metres = Info.Scale * wr.TileSize.Height / Game.ModData.Manifest.Get<PerspectiveCamera>().MetresPerCell;
-			var model = Matrix4x4.CreateScale(metres) * Matrix4x4.CreateRotationY(bodyYaw)
-				* Matrix4x4.CreateTranslation(pos.X * px, pos.Z * px, pos.Y * px);
+			var model = Matrix4x4.CreateScale(metres) * Matrix4x4.CreateRotationY(drawYaw)
+				* Matrix4x4.CreateTranslation(at.X * px, at.Z * px, at.Y * px);
 
-			return new IRenderable[] { new GltfRenderable(mesh, pos, model, nodes, self.OwnerColor()) };
+			return new IRenderable[] { new GltfRenderable(mesh, at, model, nodes, self.OwnerColor()) };
 		}
 
 		IEnumerable<Rectangle> IRender.ScreenBounds(Actor self, WorldRenderer wr)

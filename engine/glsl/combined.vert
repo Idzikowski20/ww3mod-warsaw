@@ -45,7 +45,9 @@ vec4 SelectChannelMask(uint x)
 
 void main()
 {
-	vWorld = vec3(aVertexPosition.x, 0.0, aVertexPosition.y);
+	// Bit 12: a billboard vertex (SpriteRenderer.DrawBillboard) already holds its 3D world px position
+	// (x east, y up, z south); every other vertex is the flat 2D world laid on the ground.
+	vWorld = (aVertexAttributes & 0x1000u) != 0u ? aVertexPosition : vec3(aVertexPosition.x, 0.0, aVertexPosition.y);
 	if (Use3D)
 		gl_Position = ViewProjection * vec4(vWorld, 1.0);
 	else
@@ -62,6 +64,7 @@ void main()
 	//    001, 011, 101, 111: Sample depth sprite from channel R,G,B,A
 	// Bits 6-8 define the sampler index (0-7) that the primary texture is bound to
 	// Bits 9-11 define the sampler index (0-7) that the secondary texture is bound to
+	// Bit 12 marks a perspective-camera billboard vertex (see above)
 	// Bits 16-31 define the palette row for paletted sprites
 	vChannelType = aVertexAttributes & 0x07u;
 	vChannelMask = SelectChannelMask(vChannelType);

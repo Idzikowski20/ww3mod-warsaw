@@ -23,6 +23,9 @@ namespace OpenRA.Mods.Common.Graphics
 	/// The perspective camera's unit marker, drawn in view px over the model: a shield (pentagon pointing
 	/// down) in the colour of the viewer's relationship to the owner, holding the unit's silhouette.
 	/// Selected: filled with that colour and the silhouette turns white; under the mouse: a brighter rim.
+	/// Under the shield, a health bar in the same colour, always shown (the user's call, 2026-10-28: WW3MOD
+	/// had shipped without one since 2024, health read from the damage pip; under the perspective camera
+	/// the marker carries it, as in Broken Arrow).
 	/// </summary>
 	public class UnitMarkerRenderable : IRenderable, IFinalizedRenderable
 	{
@@ -94,6 +97,10 @@ namespace OpenRA.Mods.Common.Graphics
 			var rim = selected || rollover ? Color.FromArgb(255, Math.Min(255, color.R + 60), Math.Min(255, color.G + 60), Math.Min(255, color.B + 60)) : color;
 			cr.DrawPolygon(new[] { tl, tr, mr, tip, ml }, selected ? 2 : 1, rim);
 
+			var health = actor.TraitOrDefault<IHealth>();
+			if (health != null && health.MaxHP > 0)
+				DrawHealthBar(cr, l, r, b + HealthBarGap, (float)health.HP / health.MaxHP);
+
 			if (icon == null)
 				return;
 
@@ -105,6 +112,26 @@ namespace OpenRA.Mods.Common.Graphics
 			var at = new float3((l + r - size.X) / 2, t + 3 + (boxH - size.Y) / 2, 0);
 			var tint = selected ? new float3(1, 1, 1) : new float3(color.R / 255f, color.G / 255f, color.B / 255f);
 			Game.Renderer.RgbaSpriteRenderer.DrawSprite(icon, at, scale, tint, 1f);
+		}
+
+		/// <summary>View px below the marker's bounds that its health bar and anything hung under it take.</summary>
+		public const int HealthBarGap = 3;
+		public const int HealthBarHeight = 4;
+
+		void DrawHealthBar(RgbaColorRenderer cr, float l, float r, float y, float fraction)
+		{
+			var back = Color.FromArgb(170, 12, 14, 12);
+			cr.FillRect(new float3(l, y, 0), new float3(r, y + HealthBarHeight, 0), back);
+			var fill = Math.Clamp(fraction, 0f, 1f) * (r - l - 2);
+			if (fill > 0)
+				cr.FillRect(new float3(l + 1, y + 1, 0), new float3(l + 1 + fill, y + HealthBarHeight - 1, 0), color);
+
+			// Quarter ticks, as the reference bar has.
+			for (var i = 1; i < 4; i++)
+			{
+				var x = l + 1 + (r - l - 2) * i / 4f;
+				cr.DrawLine(new float3(x, y + 1, 0), new float3(x, y + HealthBarHeight - 1, 0), 1, back);
+			}
 		}
 
 		public void RenderDebugGeometry(WorldRenderer wr) { }

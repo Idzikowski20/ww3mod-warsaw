@@ -15,7 +15,10 @@ WorldLoaded = function()
 		UnitA.Attack(UnitB, true, true)
 	end)
 
-	TestHarness.ScreenshotAfter(4, "02-turrets", "expects: T-90 turrets turned toward the Abrams")
+	-- Turrets traverse at their real rate (T-90 23 deg/s with spin-up): a 90 degree turn takes ~4 s.
+	TestHarness.ScreenshotAfter(2.8, "02a-traverse", "expects: turrets part-way round toward the Abrams")
+	TestHarness.ScreenshotAfter(4.0, "02b-traverse", "expects: turrets further round")
+	TestHarness.ScreenshotAfter(7.0, "02-turrets", "expects: T-90 turrets on the Abrams")
 	Trigger.AfterDelay(TestHarness.TicksForSeconds(19), function() Camera.SetView(200, 70) end)
 	TestHarness.ScreenshotAfter(20, "03-aftermath", "expects: wreck model where a T-90 died")
 	Trigger.AfterDelay(TestHarness.TicksForSeconds(22), function()

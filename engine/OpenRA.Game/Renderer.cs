@@ -295,6 +295,8 @@ namespace OpenRA
 			}
 
 			// Every frame: the perspective camera moves without changing worldViewport.
+			// Only the worldSprite corner of the framebuffer reaches the screen: squeeze the camera's clip space into it.
+			camera?.SetBufferScale(new float2((float)worldSprite.Size.X / worldSheet.Size.Width, (float)worldSprite.Size.Y / worldSheet.Size.Height));
 			WorldSpriteRenderer.SetCamera(camera);
 
 			// WW3MOD: Enable pixel art scaling for world sprites so scaled units

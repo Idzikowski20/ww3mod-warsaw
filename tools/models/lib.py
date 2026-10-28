@@ -210,12 +210,18 @@ def finish(path, outline_width=0.035, keep=("hull", "turret", "barrel"), texture
     keep lists the node names that survive as glTF nodes; anything else is merged into its nearest
     kept ancestor, or into the first keep entry when it has none."""
     scene = bpy.context.scene
+    # Parenting and locations set since the last depsgraph update are not in matrix_world yet.
+    bpy.context.view_layer.update()
     for o in list(scene.objects):
         if o.type != "MESH":
             bpy.data.objects.remove(o, do_unlink=True)
     keepers = [o for o in scene.objects if o.name in keep or o.name.split(".")[0] in keep
                or o.get("node")]
-    for o in list(scene.objects):
+    def depth(o):
+        return 0 if o.parent is None else 1 + depth(o.parent)
+
+    # Deepest first, so a helper part parented to another helper part is merged before its parent goes.
+    for o in sorted(scene.objects, key=depth, reverse=True):
         if o in keepers:
             continue
         target = o.parent
@@ -311,8 +317,12 @@ def _weathering(m, base, wreck=False):
         return mix(1.0, c, (k, k, k), "MULTIPLY")
 
     if source is not None:
-        # Texture nodes read the source UV map, not the new atlas map that bake() makes active.
+        # Texture nodes read the source UV map, not the new atlas map that bake() makes active. Their
+        # images are read raw: as sRGB they would be linearised and then stored raw in the Non-Color atlas,
+        # which the engine shows as is - about 4x too dark.
         for n in list(nt.nodes):
+            if n.type == "TEX_IMAGE" and n.image:
+                n.image.colorspace_settings.name = "Non-Color"
             if n.type == "TEX_IMAGE":
                 uv = N("ShaderNodeUVMap")
                 uv.uv_map = SOURCE_UV

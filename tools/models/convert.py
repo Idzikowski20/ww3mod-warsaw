@@ -18,6 +18,7 @@ then lib.finish(..., flat=False) bakes, outlines and exports (build.py calls it)
 Sources live in WORKSPACE/m4-refs/sources/.
 """
 
+import math
 import os
 import bmesh
 import bpy
@@ -51,7 +52,39 @@ def load(filename, name="hull"):
     o = meshes[0]
     o.name = name
     o.data.name = name
+    weld(o)
     return o
+
+
+def weld(o, angle=40):
+    """Merges coincident vertices. A glTF source splits them at every seam and hard edge, so each triangle is
+    its own piece: the bake's UV unwrap then gives every triangle a sub-pixel island that bakes black, and
+    decimation cannot collapse across pieces. Hard edges come back from the face angle."""
+    bm = bmesh.new()
+    bm.from_mesh(o.data)
+    bmesh.ops.remove_doubles(bm, verts=bm.verts, dist=1e-4)
+    bm.to_mesh(o.data)
+    bm.free()
+    for p in o.data.polygons:
+        p.use_smooth = True
+    o.data.set_sharp_from_angle(angle=math.radians(angle))
+
+
+def raw_colours(o):
+    """Flat (untextured) base colours of a downloaded model, glTF-linear, turned into the display values the
+    bake stores and the engine shows as they are. Marks each material, so calling it twice is harmless."""
+    for m in o.data.materials:
+        if m is None or not m.use_nodes or m.get("raw_colour"):
+            continue
+        for n in m.node_tree.nodes:
+            if n.type == "BSDF_PRINCIPLED" and not n.inputs["Base Color"].is_linked:
+                c = n.inputs["Base Color"].default_value
+                n.inputs["Base Color"].default_value = (*(_srgb(v) for v in c[:3]), c[3])
+        m["raw_colour"] = True
+
+
+def _srgb(v):
+    return 12.92 * v if v <= 0.0031308 else 1.055 * v ** (1 / 2.4) - 0.055
 
 
 def _join(objs):
@@ -75,8 +108,9 @@ def normalize(o, front="-Y", length=None, width=None, height=None, scale=None, c
     """Bakes into the mesh: the front turned to +Y (front is where the source's nose points: "+Y", "-Y",
     "+X", "-X"), scaled so its length along y (or width along x, or height) is that many metres, or by
     scale, centred on x/y and standing on z = 0."""
+    # Counter-clockwise about +Z by turn: a nose at +X goes to +Y with +90.
     turn = {"+Y": 0, "-Y": 180, "+X": 90, "-X": -90}[front]
-    m = Matrix.Rotation(-turn * 3.14159265 / 180, 4, "Z") if turn else Matrix.Identity(4)
+    m = Matrix.Rotation(math.radians(turn), 4, "Z") if turn else Matrix.Identity(4)
     o.data.transform(m)
     lo, hi = bounds(o)
     size = hi - lo

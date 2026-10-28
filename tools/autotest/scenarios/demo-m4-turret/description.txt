@@ -1,0 +1,1 @@
+DEMO: M4 turret traverse -- a north-facing T-90 turns its turret 90 degrees west onto an Abrams at its real rate.

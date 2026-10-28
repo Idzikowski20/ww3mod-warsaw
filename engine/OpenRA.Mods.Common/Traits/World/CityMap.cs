@@ -315,7 +315,7 @@ namespace OpenRA.Mods.Common.Traits
 		void SetCommonUniforms(IShader s, Camera3D camera)
 		{
 			// Copied: the threaded context posts the array to the render thread, and the camera rewrites it next frame.
-			s.SetMatrix("ViewProjection", (float[])camera.ViewProjection.Clone());
+			s.SetMatrix("ViewProjection", (float[])camera.RenderViewProjection.Clone());
 			s.SetVec("LightDirection", light, 3);
 			s.SetVec("AmbientLight", info.AmbientLight, 3);
 			s.SetVec("DiffuseLight", info.DiffuseLight, 3);

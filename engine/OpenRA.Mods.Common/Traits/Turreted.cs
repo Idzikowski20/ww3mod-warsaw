@@ -25,6 +25,10 @@ namespace OpenRA.Mods.Common.Traits
 		[Desc("Speed at which the turret turns.")]
 		public readonly WAngle TurnSpeed = new(512);
 
+		[Desc("Ticks the turret drive takes to spin up to TurnSpeed (and about as many to brake onto its target).",
+			"0 = it turns at TurnSpeed from the first tick and stops dead, as before.")]
+		public readonly int TurnSpinUpTicks = 0;
+
 		public readonly WAngle InitialFacing = WAngle.Zero;
 
 		[Desc("Number of ticks before turret is realigned. (-1 turns off realignment)")]
@@ -157,6 +161,13 @@ namespace OpenRA.Mods.Common.Traits
 		int realignTick = 0;
 		bool realignDesired;
 
+		// TurnSpinUpTicks > 0: the drive's state, in 1/Util.FacingFine WAngle. finePosition is the exact
+		// facing; LocalOrientation is it rounded down.
+		[Sync]
+		int finePosition;
+		[Sync]
+		int fineSpeed;
+
 		public WRot WorldOrientation
 		{
 			get
@@ -183,7 +194,14 @@ namespace OpenRA.Mods.Common.Traits
 			: base(info)
 		{
 			LocalOrientation = WRot.FromYaw(info.LocalFacingFromInit(init)());
+			world = init.World;
 		}
+
+		// MoveTurret is reached from Tick and again from FaceTarget (AttackTurreted, AutoTarget) in the same
+		// tick while a turret swings onto a target, which turned it at up to twice TurnSpeed. One step a tick.
+		readonly World world;
+		[Sync]
+		int movedOnTick = -1;
 
 		protected override void Created(Actor self)
 		{
@@ -280,12 +298,35 @@ namespace OpenRA.Mods.Common.Traits
 
 		void MoveTurret()
 		{
-			var desired = realignDesired ? Info.InitialFacing : DesiredLocalFacing;
-			if (desired == LocalOrientation.Yaw)
+			if (movedOnTick == world.WorldTick)
 				return;
 
+			movedOnTick = world.WorldTick;
+			var desired = realignDesired ? Info.InitialFacing : DesiredLocalFacing;
+			if (desired == LocalOrientation.Yaw)
+			{
+				// On target: the drive is at rest there.
+				finePosition = desired.Angle * Util.FacingFine;
+				fineSpeed = 0;
+				return;
+			}
+
 			var turnSpeed = new WAngle(Util.ApplyPercentageModifiers(Info.TurnSpeed.Angle, turretTurnSpeedModifiers));
-			LocalOrientation = LocalOrientation.WithYaw(Util.TickFacing(LocalOrientation.Yaw, desired, turnSpeed));
+			if (Info.TurnSpinUpTicks > 0)
+			{
+				// Something else may have set the facing (init, realign): resync the fine position to it.
+				if (finePosition / Util.FacingFine != LocalOrientation.Yaw.Angle)
+				{
+					finePosition = LocalOrientation.Yaw.Angle * Util.FacingFine;
+					fineSpeed = 0;
+				}
+
+				var max = turnSpeed.Angle * Util.FacingFine;
+				finePosition = Util.TickFacingEased(finePosition, desired, ref fineSpeed, max, max / Info.TurnSpinUpTicks);
+				LocalOrientation = LocalOrientation.WithYaw(new WAngle(finePosition / Util.FacingFine));
+			}
+			else
+				LocalOrientation = LocalOrientation.WithYaw(Util.TickFacing(LocalOrientation.Yaw, desired, turnSpeed));
 
 			if (desired == LocalOrientation.Yaw)
 			{

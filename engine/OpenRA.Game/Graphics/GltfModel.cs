@@ -504,7 +504,7 @@ namespace OpenRA.Graphics
 			Game.Renderer.Flush();
 			Game.Renderer.Context.SetDepthWrite(true);
 			var shader = GltfModel.Shader;
-			shader.SetMatrix("ViewProjection", (float[])camera.ViewProjection.Clone());
+			shader.SetMatrix("ViewProjection", (float[])camera.RenderViewProjection.Clone());
 			shader.SetVec("Eye", camera.Eye.X, camera.Eye.Y, camera.Eye.Z);
 			shader.SetVec("HazeRange", camera.HazeRange.X, camera.HazeRange.Y);
 			shader.SetVec("SkyColour", camera.SkyColour, 3);

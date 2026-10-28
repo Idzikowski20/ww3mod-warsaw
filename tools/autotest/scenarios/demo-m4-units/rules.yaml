@@ -23,3 +23,8 @@ World:
 		InitialEngagementStanceAI: Hunt
 		MinimumScanTimeInterval: 16
 		MaximumScanTimeInterval: 32
+
+# The target survives, so every T-90 keeps tracking it: the frames show where the turrets point.
+abrams:
+	Health:
+		HP: 100000000

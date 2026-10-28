@@ -120,6 +120,18 @@ namespace OpenRA.Graphics
 			if ((TintModifiers & TintModifiers.ReplaceColor) != 0)
 				a *= -1;
 
+			// Perspective camera: effects, projectiles and still-2D units stand up at their real 3D position
+			// facing the camera, instead of lying on the ground shifted north by their height.
+			var camera = wr.Viewport.Camera;
+			if (camera != null)
+			{
+				var w = pos + Offset;
+				var px = (float)wr.TileSize.Height / wr.TileScale;
+				wsr.DrawBillboard(sprite, Palette, new float3(w.X * px, w.Z * px, w.Y * px), camera.Right, camera.Up, scale, t, a,
+					rotation.RendererRadians());
+				return;
+			}
+
 			wsr.DrawSprite(sprite, Palette, ScreenPosition(wr), scale, t, a, rotation.RendererRadians());
 		}
 

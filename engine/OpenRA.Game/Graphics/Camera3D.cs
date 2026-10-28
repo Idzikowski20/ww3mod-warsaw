@@ -245,6 +245,10 @@ namespace OpenRA.Graphics
 			return new float2((x / w + 1f) * 0.5f * screen.Width, (y / w + 1f) * 0.5f * screen.Height);
 		}
 
+		/// <summary>Camera axes in the world frame (x east, y up, z south): billboards are spanned by these.</summary>
+		public float3 Right => right;
+		public float3 Up => up;
+
 		/// <summary>Projects a 3D point (world px: x east, y up, z south) to screen px. Behind the eye lands far off screen.</summary>
 		public float2 ProjectPoint(in float3 p)
 		{
@@ -402,6 +406,42 @@ namespace OpenRA.Graphics
 			m[4] = sx * right.Y; m[5] = sy * up.Y; m[6] = a22 * back.Y; m[7] = -back.Y;
 			m[8] = sx * right.Z; m[9] = sy * up.Z; m[10] = a22 * back.Z; m[11] = -back.Z;
 			m[12] = sx * tx; m[13] = sy * ty; m[14] = a22 * tz + a23; m[15] = -tz;
+			UpdateRenderMatrix();
+		}
+
+		/// <summary>
+		/// ViewProjection as the shaders must use it: the world is drawn into a framebuffer of which only the
+		/// screen-sized corner is shown (Renderer.BeginWorld), so clip space is squeezed into that corner.
+		/// Project, ProjectPoint and GroundAt keep working in screen terms with ViewProjection.
+		/// </summary>
+		public float[] RenderViewProjection { get; } = new float[16];
+
+		float2 bufferScale = new(1f, 1f);
+
+		/// <summary>The shown corner's share of the world framebuffer, per axis (Renderer.BeginWorld sets it).</summary>
+		public void SetBufferScale(float2 scale)
+		{
+			if (scale == bufferScale)
+				return;
+
+			bufferScale = scale;
+			UpdateRenderMatrix();
+		}
+
+		// Clip x' = a x + (a - 1) w (likewise y with b): NDC -1..1 becomes -1..2a-1, the shown corner.
+		void UpdateRenderMatrix()
+		{
+			var m = ViewProjection;
+			var r = RenderViewProjection;
+			float a = bufferScale.X, b = bufferScale.Y;
+			for (var c = 0; c < 4; c++)
+			{
+				var w = m[c * 4 + 3];
+				r[c * 4] = a * m[c * 4] + (a - 1f) * w;
+				r[c * 4 + 1] = b * m[c * 4 + 1] + (b - 1f) * w;
+				r[c * 4 + 2] = m[c * 4 + 2];
+				r[c * 4 + 3] = w;
+			}
 		}
 
 		static float Dot(in float3 a, in float3 b) { return a.X * b.X + a.Y * b.Y + a.Z * b.Z; }
