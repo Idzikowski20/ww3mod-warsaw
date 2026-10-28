@@ -103,8 +103,22 @@ namespace OpenRA.Mods.Common.Traits.Render
 			if (!Game.ModData.Manifest.Get<PerspectiveCamera>().Enabled)
 				return () => false;
 
+			// Looked up on first use: the sprite traits ask before WithMeshBody exists. That first use can come after
+			// the actor is destroyed (screen bounds of an actor killed before it was ever drawn), when traits can no
+			// longer be read; a dead actor draws nothing either way.
 			WithMeshBody[] meshes = null;
-			return () => (meshes ??= self.TraitsImplementing<WithMeshBody>().ToArray()).Any(m => !m.IsTraitDisabled);
+			return () =>
+			{
+				if (meshes == null)
+				{
+					if (self.Disposed)
+						return false;
+
+					meshes = self.TraitsImplementing<WithMeshBody>().ToArray();
+				}
+
+				return meshes.Any(m => !m.IsTraitDisabled);
+			};
 		}
 
 		/// <summary>Height of the model's top above the actor, world px.</summary>

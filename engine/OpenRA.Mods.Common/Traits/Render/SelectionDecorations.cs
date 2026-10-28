@@ -44,6 +44,10 @@ namespace OpenRA.Mods.Common.Traits.Render
 
 		WithMeshBody Mesh(Actor self)
 		{
+			// Traits can no longer be read once the actor is destroyed (first asked about after its death).
+			if (meshes == null && self.Disposed)
+				return null;
+
 			meshes ??= self.TraitsImplementing<WithMeshBody>().ToArray();
 			return meshes.FirstOrDefault(m => !m.IsTraitDisabled);
 		}
