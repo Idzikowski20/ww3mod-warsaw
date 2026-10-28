@@ -1,0 +1,9 @@
+- "Helicopters MH-6 Little Bird" by mario low poly (CC-BY-4.0), https://sketchfab.com/3d-models/helicopters-mh-6-little-bird-69cb05db3fc3483cb729734262abf28e - littlebird and its wreck
+- "Boeing AH-64D Apache Combat Helicopter" by Muhamad Mirza Arrafi (CC-BY-4.0), https://sketchfab.com/3d-models/boeing-ah-64d-apache-combat-helicopter-c3b58008c46b45048fdd7dd283a3c8c8 - HELI (AH-64D) and its wreck
+- "A-10 Thunderbolt II" by AIRMAN Magazine (CC-BY-4.0), https://sketchfab.com/3d-models/a-10-thunderbolt-ii-9521ff6ba5d448958ea45a89e94ab23d - A10 (and A10.Airstrike) and its wreck
+- "F-16 jet" by RickSlash (CC-BY-4.0), https://sketchfab.com/3d-models/f-16-jet-69c32a15b8e24d6ebf276b76dde3ab95 - F16 and its wreck
+- "Mi-26" by dannzjs (CC-BY-4.0), https://sketchfab.com/3d-models/mi-26-272597d721e74a45914f7ffb846dda2a - HALO (Mi-26) and its wreck
+- "Mi-24 Hind" by Duane's Mind (CC-BY-4.0), https://sketchfab.com/3d-models/mi-24-hind-004d68143e1a4df88e136dbc0a05f181 - HIND (Mi-24) and its wreck
+- "Mi-28N Havoc" by Rukh3D (CC-BY-4.0), https://sketchfab.com/3d-models/mi-28n-havoc-3e80c95bbadf46abbafba9d9a08afc68 - MI28 and its wreck
+- "Su-25" by mamont nikita (CC-BY-4.0), https://sketchfab.com/3d-models/su-25-88b71eb848cf4418a95dff497c07cefc - FROG (Su-25, and FROG.Airstrike) and its wreck
+- "Mig 29 (9-13)" by Rifeor (CC-BY-4.0), https://sketchfab.com/3d-models/mig-29-9-13-2c8a8f454fa04a8b914aa9a227f67bbe - MIG (MiG-29) and its wreck

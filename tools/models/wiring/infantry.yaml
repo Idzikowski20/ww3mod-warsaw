@@ -1,0 +1,263 @@
+# Infantry models (M4): every soldier role of both sides, the vehicle crews and the pilots, merged over
+# their definitions like rules/models-3d.yaml. Built by tools/models/units/<model>.py (_infantry.py);
+# sources and licences: tools/models/wiring/infantry-credits.md. Clips: idle, move, attack, death.
+
+E1.america:
+	WithMeshBody:
+		Model: e1_america.glb
+		Scale: 2
+
+E1R1.america:
+	WithMeshBody:
+		Model: e1_america.glb
+		Scale: 2
+
+E2.america:
+	WithMeshBody:
+		Model: e2_america.glb
+		Scale: 2
+
+E2R1.america:
+	WithMeshBody:
+		Model: e2_america.glb
+		Scale: 2
+
+E3.america:
+	WithMeshBody:
+		Model: e3_america.glb
+		Scale: 2
+
+E3R1.america:
+	WithMeshBody:
+		Model: e3_america.glb
+		Scale: 2
+
+AR.america:
+	WithMeshBody:
+		Model: ar_america.glb
+		Scale: 2
+
+MT.america:
+	WithMeshBody:
+		Model: mt_america.glb
+		Scale: 2
+
+TL.america:
+	WithMeshBody:
+		Model: tl_america.glb
+		Scale: 2
+
+AT.america:
+	WithMeshBody:
+		Model: at_america.glb
+		Scale: 2
+
+AA.america:
+	WithMeshBody:
+		Model: aa_america.glb
+		Scale: 2
+
+MEDI.america:
+	WithMeshBody:
+		Model: medi_america.glb
+		Scale: 2
+
+SN.america:
+	WithMeshBody:
+		Model: sn_america.glb
+		Scale: 2
+
+E6.america:
+	WithMeshBody:
+		Model: e6_america.glb
+		Scale: 2
+
+SF.america:
+	WithMeshBody:
+		Model: sf_america.glb
+		Scale: 2
+
+TECN.america:
+	WithMeshBody:
+		Model: tecn_america.glb
+		Scale: 2
+
+DR.america:
+	WithMeshBody:
+		Model: dr_america.glb
+		Scale: 2
+
+E4.america:
+	WithMeshBody:
+		Model: e4_america.glb
+		Scale: 2
+
+crew.driver.america:
+	WithMeshBody:
+		Model: crew_america.glb
+		Scale: 2
+
+crew.gunner.america:
+	WithMeshBody:
+		Model: crew_america.glb
+		Scale: 2
+
+crew.commander.america:
+	WithMeshBody:
+		Model: crew_america.glb
+		Scale: 2
+
+crew.pilot.america:
+	WithMeshBody:
+		Model: pilot_america.glb
+		Scale: 2
+
+crew.copilot.america:
+	WithMeshBody:
+		Model: pilot_america.glb
+		Scale: 2
+
+E1.russia:
+	WithMeshBody:
+		Model: e1_russia.glb
+		Scale: 2
+
+E1R1.russia:
+	WithMeshBody:
+		Model: e1_russia.glb
+		Scale: 2
+
+E2.russia:
+	WithMeshBody:
+		Model: e2_russia.glb
+		Scale: 2
+
+E2R1.russia:
+	WithMeshBody:
+		Model: e2_russia.glb
+		Scale: 2
+
+E3.russia:
+	WithMeshBody:
+		Model: e3_russia.glb
+		Scale: 2
+
+E3R1.russia:
+	WithMeshBody:
+		Model: e3_russia.glb
+		Scale: 2
+
+AR.russia:
+	WithMeshBody:
+		Model: ar_russia.glb
+		Scale: 2
+
+MT.russia:
+	WithMeshBody:
+		Model: mt_russia.glb
+		Scale: 2
+
+TL.russia:
+	WithMeshBody:
+		Model: tl_russia.glb
+		Scale: 2
+
+AT.russia:
+	WithMeshBody:
+		Model: at_russia.glb
+		Scale: 2
+
+AA.russia:
+	WithMeshBody:
+		Model: aa_russia.glb
+		Scale: 2
+
+MEDI.russia:
+	WithMeshBody:
+		Model: medi_russia.glb
+		Scale: 2
+
+SN.russia:
+	WithMeshBody:
+		Model: sn_russia.glb
+		Scale: 2
+
+E6.russia:
+	WithMeshBody:
+		Model: e6_russia.glb
+		Scale: 2
+
+SF.russia:
+	WithMeshBody:
+		Model: sf_russia.glb
+		Scale: 2
+
+TECN.russia:
+	WithMeshBody:
+		Model: tecn_russia.glb
+		Scale: 2
+
+DR.russia:
+	WithMeshBody:
+		Model: dr_russia.glb
+		Scale: 2
+
+E4.russia:
+	WithMeshBody:
+		Model: e4_russia.glb
+		Scale: 2
+
+crew.driver.russia:
+	WithMeshBody:
+		Model: crew_russia.glb
+		Scale: 2
+
+crew.gunner.russia:
+	WithMeshBody:
+		Model: crew_russia.glb
+		Scale: 2
+
+crew.commander.russia:
+	WithMeshBody:
+		Model: crew_russia.glb
+		Scale: 2
+
+crew.pilot.russia:
+	WithMeshBody:
+		Model: pilot_russia.glb
+		Scale: 2
+
+crew.copilot.russia:
+	WithMeshBody:
+		Model: pilot_russia.glb
+		Scale: 2
+
+PILOT:
+	WithMeshBody:
+		Model: pilot_america.glb
+		Scale: 2
+
+PILOTR1:
+	WithMeshBody:
+		Model: pilot_america.glb
+		Scale: 2
+
+PILOTR2:
+	WithMeshBody:
+		Model: pilot_america.glb
+		Scale: 2
+
+PILOTR3:
+	WithMeshBody:
+		Model: pilot_america.glb
+		Scale: 2
+
+PILOTR4:
+	WithMeshBody:
+		Model: pilot_america.glb
+		Scale: 2
+
+quadcopterdrone:
+	WithMeshBody:
+		Model: fpv_drone.glb
+		Scale: 2

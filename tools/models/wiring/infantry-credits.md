@@ -1,0 +1,23 @@
+# Infantry model credits
+
+- "Soldier Full Tactical Gear" by DanlyVostok, CC-BY-4.0, https://sketchfab.com/3d-models/soldier-full-tactical-gear-850593a8c7114c188395ba1849a66eb9 (tinted coyote) - every *_america model (e1, e2, e3, ar, sn, at, aa, mt, e4, e6, medi, tl, dr, tecn, sf, crew, pilot)
+- "FSB Operator" by Mateusz Woliński, CC-BY-4.0, https://sketchfab.com/3d-models/fsb-operator-43a561e941704eefb1ab0614be4f0049 (tinted EMR green; its rifle removed) - every *_russia model (e1, e2, e3, ar, sn, at, aa, mt, e4, e6, medi, tl, dr, tecn, sf, crew, pilot)
+- "M4 Carbine" by SINNIK, CC-BY-4.0, https://sketchfab.com/3d-models/m4-carbine-b516a8416b1044a7839b4a89dc24ca38 - e1/e2/e3/mt/medi/tl/sf_america, dr_america (slung)
+- "Ak47" by wburton, CC-BY-4.0, https://sketchfab.com/3d-models/ak47-831519a097d84e079fd8bc4b15e5b57d - e1/e2/e3/mt/medi/tl/sf_russia, dr_russia (slung)
+- "M320 Grenade Launcher (Low-Poly)" by GoldbergR, CC-BY-4.0, https://sketchfab.com/3d-models/m320-grenade-launcher-low-poly-7516454a891944b3bae3a5be293457b1 - e2_america
+- "low-poly GP-25" by D.U., CC-BY-4.0, https://sketchfab.com/3d-models/low-poly-gp-25-8dbdec74bad944a9b7eca73b2a6269fa - e2_russia
+- "RPG-7" by paolinorenzo, CC-BY-4.0, https://sketchfab.com/3d-models/rpg-7-6c8683f0dbc04d75b610a2e656e639a8 - e3_russia
+- "M249 DIY builds (2)" by Nortenko Dmytro, CC-BY-4.0, https://sketchfab.com/3d-models/m249-diy-builds-2-c489c3bf18ee487186469cca48b56c82 (voxel-rebuilt) - ar_america
+- "PKM Machine Gun" by Li Zheng, CC-BY-4.0, https://sketchfab.com/3d-models/pkm-machine-gun-79bc67a78b434e65950f0257fe5f09a5 - ar_russia
+- "KAC M110" by CloudyRain, CC-BY-4.0, https://sketchfab.com/3d-models/kac-m110-df9e38fe9c674c30bd212daccd11414a - sn_america
+- "SVD Dragunov" by neyr, CC-BY-4.0, https://sketchfab.com/3d-models/svd-dragunov-b18837e316304521a5d2da8d258b6f25 - sn_russia
+- "FGM-148 Javelin" by STALKER, CC-BY-4.0, https://sketchfab.com/3d-models/fgm-148-javelin-d8fe79b60b2d42308e11fbd22f4dec4f - at_america, at_russia
+- "FIM-92 Stinger" by Mortavex, CC-BY-4.0, https://sketchfab.com/3d-models/fim-92-stinger-d9de43d3b00a4381b991c35369b5e183 (file fim-92_stinger_v2.glb) - aa_america, aa_russia
+- "Mortar - M224" by jcherry3d, CC-BY-4.0, https://sketchfab.com/3d-models/mortar-m224-c86a73e40d994431bcdb57dc741cf8be (voxel-rebuilt) - mt_america, mt_russia
+- "Mp5" by Long Nguyễn, CC-BY-4.0, https://sketchfab.com/3d-models/mp5-fa9b8914fda34acb9a54fa64e99d5608 - e6, crew, pilot (both sides)
+- "Medical Kit Bag" by yronthal, CC-BY-4.0, https://sketchfab.com/3d-models/medical-kit-bag-abc2f95bce4c4e69bfc0d8742d37e78b - medi_america, medi_russia
+- "Military/Tactical Radio & Backpack" by Neslihan Çakmak, CC-BY-4.0, https://sketchfab.com/3d-models/militarytactical-radio-backpack-8209d4ac220e4ae09cadd9be49a5119f (voxel-rebuilt) - tl_america, tl_russia
+- "Tactical Headset - Game Ready" by Exactly, CC-BY-4.0, https://sketchfab.com/3d-models/tactical-headset-game-ready-c1cee56e73ed47438015a646ad82dfa5 - pilot_america, pilot_russia
+- "FPV-dron_NonStop" by Viktor_, CC-BY-4.0, https://sketchfab.com/3d-models/fpv-dron-nonstop-c75dea6e3ae441ac87f292efb17f5bae - fpv_drone
+- Human Soldier Animations 2.0 FREE by Kevin Iglesias (Unity Asset Store EULA) - the idle, move, attack and death clips of every infantry, crew and pilot model (not CC: royalty-free, attribution not required, raw animations not to be resold)
+- Built by hand (no source): helmets, AT4 on the back (e3_america), flame-thrower tank pack and wand (e4), shovel (e6), drone controller (dr), tool bag (tecn)

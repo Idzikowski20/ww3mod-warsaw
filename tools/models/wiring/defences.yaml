@@ -1,0 +1,139 @@
+# Defences and base buildings (M4), merged over their definitions like rules/models-3d.yaml. Built by
+# tools/models/units/<model>.py (_defences.py); sources: tools/models/wiring/defences-credits.md.
+# Scale = the actor's footprint (8 m a cell) over the model's real size. Walls, fences and gates
+# (SBAG BRIK FENC BARB CYCL WOOD HGATE VGATE) have models but are not wired: they need engine support.
+
+CRAM:
+	WithMeshBody:
+		Model: cram.glb
+		Scale: 2
+		TurretNodes:
+			turret: primary
+
+AGUN:
+	WithMeshBody:
+		Model: agun.glb
+		Scale: 1.35
+		TurretNodes:
+			turret: primary
+
+AGUN.Husk:
+	WithMeshBody:
+		Model: agun-wreck.glb
+		Scale: 1.35
+		TurretNodes:
+			turret: primary
+
+SAM:
+	WithMeshBody:
+		Model: sam.glb
+		Scale: 1.8
+		TurretNodes:
+			turret: primary
+
+SAM.Husk:
+	WithMeshBody:
+		Model: sam-wreck.glb
+		Scale: 1.8
+
+HSAM:
+	WithMeshBody:
+		Model: hsam.glb
+		Scale: 1.05
+
+HSAM.Husk:
+	WithMeshBody:
+		Model: hsam-wreck.glb
+		Scale: 1.05
+
+GTWR:
+	WithMeshBody:
+		Model: gtwr.glb
+		Scale: 1.5
+
+PBOX:
+	WithMeshBody:
+		Model: pbox.glb
+		Scale: 1.15
+
+PBOX.Husk:
+	WithMeshBody:
+		Model: pbox-wreck.glb
+		Scale: 1.15
+
+HBOX:
+	WithMeshBody:
+		Model: hbox.glb
+		Scale: 1.1
+
+HBOX.Husk:
+	WithMeshBody:
+		Model: hbox-wreck.glb
+		Scale: 1.1
+
+GUN:
+	WithMeshBody:
+		Model: gun.glb
+		Scale: 1.4
+		TurretNodes:
+			turret: primary
+
+GUN.Husk:
+	WithMeshBody:
+		Model: gun-wreck.glb
+		Scale: 1.4
+		TurretNodes:
+			turret: primary
+
+FTUR:
+	WithMeshBody:
+		Model: ftur.glb
+		Scale: 1.6
+		TurretNodes:
+			turret: ranged-turret
+			turret2: melee-turret
+
+FTUR.Husk:
+	WithMeshBody:
+		Model: ftur-wreck.glb
+		Scale: 1.6
+
+MSLO:
+	WithMeshBody:
+		Model: mslo.glb
+		Scale: 1.45
+
+MSLO.Husk:
+	WithMeshBody:
+		Model: mslo-wreck.glb
+		Scale: 1.45
+
+HPAD:
+	WithMeshBody:
+		Model: hpad.glb
+		Scale: 1.15
+
+HPAD.Husk:
+	WithMeshBody:
+		Model: hpad-wreck.glb
+		Scale: 1.15
+
+LOGISTICSCENTER:
+	WithMeshBody:
+		Model: logisticscenter.glb
+		Scale: 1.5
+
+AFLD:
+	WithMeshBody:
+		Model: afld.glb
+		Scale: 1.5
+
+AFLD.Husk:
+	WithMeshBody:
+		Model: afld-wreck.glb
+		Scale: 1.5
+
+SUPPLYROUTE:
+	WithMeshBody:
+		Model: supplyroute.glb
+		Scale: 1.5

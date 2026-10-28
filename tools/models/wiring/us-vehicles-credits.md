@@ -1,0 +1,7 @@
+- "M1A1 Abrams Main Battle Tank" by Muhamad Mirza Arrafi (CC-BY-4.0), https://sketchfab.com/3d-models/m1a1-abrams-main-battle-tank-1529f5d842cb4f578aa8cb672524f044 - abrams (M1A2 in game)
+- "M2 Bradley IFV" by 42manako (CC-BY-4.0), https://sketchfab.com/3d-models/m2-bradley-ifv-ab022158ab5f4fbfa55d4142db7595ab - bradley
+- "Humvee Transport" by karmy2k (CC-BY-4.0), https://sketchfab.com/3d-models/humvee-transport-48336bc41caf4fa1bdf147823a774111 - humvee
+- "M109A3 Paladin" by 42manako (CC-BY-4.0), https://sketchfab.com/3d-models/m109a3-paladin-5747d6fbd28242e29b2cd8c9e668a516 - m109
+- "Free M270" by Mr. Penguin (CC-BY-4.0), https://sketchfab.com/3d-models/free-m270-fc879301999a4cd0a09721b51affba9b - m270
+- "Ukrainian M142 HIMARS" by 42manako (CC-BY-4.0), https://sketchfab.com/3d-models/ukrainian-m142-himars-95d255cd685e4cc5afc35ba5f58679d4 - HIMARS
+- "Stryker" by gogiart (CC-BY-4.0), https://sketchfab.com/3d-models/stryker-acf116a1a4904b9e867a578b632aacef - strykershorad

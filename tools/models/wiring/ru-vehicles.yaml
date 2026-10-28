@@ -1,0 +1,139 @@
+# ru-vehicles: Russian vehicles and the neutral support vehicles (TRUK, MSAR, MNLY, LCCV). Fragment for
+# mods/ww3mod/rules/models-3d.yaml. Models: tools/models/units/<model>.py; credits: ru-vehicles-credits.md.
+# MCV, MCV2, MCV.ai and MCV2.ai are not wired: they live only in rules/ingame/old.yaml, which mod.yaml does
+# not load (mcvs.yaml is all comments). LCCV is the live MCV; its husk is MCV.Husk.
+
+btr:
+	WithMeshBody:
+		Model: btr.glb
+		Scale: 2
+		TurretNodes:
+			turret: primary
+
+btr.husk:
+	WithMeshBody:
+		Model: btr-wreck.glb
+		Scale: 2
+
+bmp2:
+	WithMeshBody:
+		Model: bmp2.glb
+		Scale: 2
+		TurretNodes:
+			turret: primary
+
+bmp2.husk:
+	WithMeshBody:
+		Model: bmp2-wreck.glb
+		Scale: 2
+
+giatsint:
+	WithMeshBody:
+		Model: giatsint.glb
+		Scale: 2
+
+giatsint.husk:
+	WithMeshBody:
+		Model: giatsint-wreck.glb
+		Scale: 2
+
+grad:
+	WithMeshBody:
+		Model: grad.glb
+		Scale: 2
+		TurretNodes:
+			turret: primary
+
+grad.husk:
+	WithMeshBody:
+		Model: grad-wreck.glb
+		Scale: 2
+
+tos:
+	WithMeshBody:
+		Model: tos.glb
+		Scale: 2
+		TurretNodes:
+			turret: primary
+
+tos.husk:
+	WithMeshBody:
+		Model: tos-wreck.glb
+		Scale: 2
+
+tunguska:
+	WithMeshBody:
+		Model: tunguska.glb
+		Scale: 2
+		TurretNodes:
+			turret: primary
+
+tunguska.husk:
+	WithMeshBody:
+		Model: tunguska-wreck.glb
+		Scale: 2
+
+iskander:
+	WithMeshBody:
+		Model: iskander.glb
+		Scale: 2
+
+iskander.husk:
+	WithMeshBody:
+		Model: iskander-wreck.glb
+		Scale: 2
+
+TRUK:
+	WithMeshBody:
+		Model: truk.glb
+		Scale: 2
+
+TRUK.husk:
+	WithMeshBody:
+		Model: truk-wreck.glb
+		Scale: 2
+
+MNLY:
+	WithMeshBody:
+		Model: mnly.glb
+		Scale: 2
+
+MNLY.husk:
+	WithMeshBody:
+		Model: mnly-wreck.glb
+		Scale: 2
+
+MSAR:
+	WithMeshBody:
+		Model: msar.glb
+		Scale: 2
+		RequiresCondition: !deployed
+	WithMeshBody@deployed:
+		Model: msar_deployed.glb
+		Scale: 2
+		RequiresCondition: deployed
+
+MSAR.husk:
+	WithMeshBody:
+		Model: msar-wreck.glb
+		Scale: 2
+
+MSAR.deployed.husk:
+	WithMeshBody:
+		Model: msar_deployed-wreck.glb
+		Scale: 2
+
+LCCV:
+	WithMeshBody:
+		Model: lccv.glb
+		Scale: 2
+
+MCV.Husk:
+	WithMeshBody:
+		Model: lccv-wreck.glb
+		Scale: 2
+
+MCV2.Husk:
+	WithMeshBody:
+		Model: lccv-wreck.glb
+		Scale: 2
