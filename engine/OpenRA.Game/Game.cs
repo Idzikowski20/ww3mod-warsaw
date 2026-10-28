@@ -912,7 +912,7 @@ namespace OpenRA
 				// Use worldRenderer.World instead of OrderManager.World to avoid a rendering mismatch while processing orders
 				if (worldRenderer != null && !worldRenderer.World.IsLoadingGameSave)
 				{
-					Renderer.BeginWorld(worldRenderer.Viewport.Rectangle, worldRenderer.Viewport.Camera?.ViewProjection);
+					Renderer.BeginWorld(worldRenderer.Viewport.Rectangle, worldRenderer.Viewport.Camera);
 					Sound.SetListenerPosition(worldRenderer.Viewport.CenterPosition);
 					using (new PerfSample("render_world"))
 						worldRenderer.Draw();

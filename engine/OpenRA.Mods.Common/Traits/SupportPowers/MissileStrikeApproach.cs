@@ -46,8 +46,8 @@ namespace OpenRA.Mods.Common.Traits
 	/// as a cell on the far side of the world -- and the missile really does convert
 	/// (<c>BallisticMissile.TopLeft</c> is <c>Map.CellContaining(CenterPosition)</c>).
 	/// <see cref="MaxStandoff"/> caps the walk-back at 1024 cells; on the largest shipped map
-	/// (x-lake, 130x130) the standoff is ~200 cells and the worst spawn cell coordinate is about
-	/// -200, so the cap is a guard rather than a live constraint. It also keeps every WVec component
+	/// (warsaw-srodmiescie, 258x258) the standoff is ~381 cells and the worst spawn cell coordinate is
+	/// about -381, so the cap is a guard rather than a live constraint. It also keeps every WVec component
 	/// under 1,048,576, half of the 2,097,151 ceiling above which <see cref="WVec.Yaw"/> overflows
 	/// int and silently returns a plausible wrong angle (DOCS/reference/conventions.md).</para>
 	/// </remarks>

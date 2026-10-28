@@ -4,25 +4,31 @@ Writes into the map folder:
   map.bin          256x256 playable cells (+1 border) of TEMPERAT terrain: Road where OSM has carriageway
   ground.png       2048x2048 ground texture, 1 m per pixel, in the Godot prototype's ground palette
   buildings.mesh   every LoD2 building as a triangle mesh plus the cells it blocks (format below)
+  facades.png      4096 px atlas of the facade styles rendered by blender_facades.py (data/facades)
+  roofs.png        the GUGiK orthophoto of the map square at 0.5 m/px (fetch_ortho.py), draped on roofs
   map.yaml         players, four spawns and one `warsawbuilding` actor per building
   map.png          lobby preview
 
 Sources (data dir = game-studio/data/raw): Modele_3D/*.gml (GUGiK CityGML 2.0 LoD2, EPSG:2180),
-wide_ground_osm.json (Overpass ways with inline geometry), wide_master_ortho.png (GUGiK ortho of the
-5200 m window E 634400..639600, N 484400..489600, used for roof colours). Colours, widths and the
+wide_ground_osm.json (Overpass ways with inline geometry), wide_buildings_osm.json (building
+tags for the facade style), map_ortho_05m.png (GUGiK ortho of the map square, fetch_ortho.py). Colours, widths and the
 roof sampling copy game-studio/src/map/{district_loader,osm_ground}.gd.
 
 buildings.mesh, little endian:
-  "WMSH" u32 version=1 u32 buildingCount
+  "WMSH" u32 version=2 u32 styleCount, styleCount x (f32 width, upperHeight, groundHeight) metres,
+  u32 buildingCount
   per building: u32 vertexCount, u32 cellCount, cellCount x (u16 x, u16 y) map cells,
-                vertexCount x (f32 x, y, z, nx, ny, nz, r, g, b)
+                vertexCount x (f32 x, y, z, nx, ny, nz, r, g, b, u, v, style)
   Positions are world px in the camera frame (Camera3D.cs): x east, y up, z south; 24 px per 8 m cell.
+  style >= 0: facade atlas style, u/v = metres along the wall / above the base, rgb = tint.
+  style -1: roof, u/v = roofs.png coordinates. style -2: plain rgb (PKiN copper and gilding).
 
 Usage: python build_city.py <data dir> <map dir>
 """
 import json
 import math
 import os
+import re
 import struct
 import sys
 import xml.etree.ElementTree as ET
@@ -44,10 +50,11 @@ BORDER = 1                       # one unplayable cell around the map (Bounds: 1
 
 # --- Colours (district_loader.gd / osm_ground.gd) --------------------------------------------
 BUILDING = (0.80, 0.76, 0.70)
-FACADES = [(0.80, 0.76, 0.70), (0.74, 0.70, 0.64), (0.85, 0.82, 0.76), (0.68, 0.62, 0.55),
-           (0.78, 0.72, 0.60), (0.64, 0.61, 0.58)]
-GREEN_ROOF = (0.42, 0.48, 0.27)
-ROOF_DESATURATE, ROOF_DARKEN, GREEN_MARGIN = 0.45, 0.06, 0.03
+# Facade styles rendered by blender_facades.py; the index is the atlas slot (see build_atlas).
+STYLE_ORDER = ["kamienica", "socrealizm", "plyta", "biurowiec", "szklo", "pawilon", "cegla", "piaskowiec"]
+STYLE_INDEX = {n: i for i, n in enumerate(STYLE_ORDER)}
+KIND_ROOF, KIND_FLAT = -1.0, -2.0      # vertex style: sample the roof ortho / use the vertex colour
+ATLAS_TILE, ATLAS_GRID = 1024, 4
 PKIN_RADIUS = 175.0
 PKIN_STONE, PKIN_FLAT, PKIN_COPPER, PKIN_GOLD = (0.63, 0.59, 0.52), (0.40, 0.38, 0.36), (0.36, 0.56, 0.47), (0.80, 0.66, 0.30)
 PKIN_COPPER_FROM, PKIN_GOLD_FROM = 180.0, 186.0
@@ -56,7 +63,6 @@ GROUND = (0.45, 0.43, 0.40)
 ASPHALT, FOOT, CYCLE = (0.18, 0.18, 0.20), (0.50, 0.48, 0.46), (0.45, 0.22, 0.20)
 GREEN, WATER, PARKING, PLATFORM, BARE = (0.27, 0.37, 0.19), (0.22, 0.34, 0.45), (0.42, 0.41, 0.40), (0.58, 0.56, 0.52), (0.55, 0.45, 0.34)
 
-ORTHO_E0, ORTHO_N1, ORTHO_SIZE = 634400.0, 489600.0, 5200.0
 
 # --- TEMPERAT tiles (verified in the earlier generator) ---------------------------------------
 CLEAR, ROAD_TILES = 255, (227, 228)
@@ -190,26 +196,132 @@ def parse_gml(path):
                 el.clear()
 
 
-class Ortho:
-    def __init__(self, path):
-        self.img = np.asarray(Image.open(path).convert("RGB"), dtype=np.float32) / 255.0
-        self.h, self.w = self.img.shape[:2]
+class OsmBuildings:
+    """OSM building outlines (wide_buildings_osm.json) in world px, for looking up the tags under a point."""
 
-    def roof(self, e, n):
-        """5x5 ortho average around a roof point, skipping dark gaps and blown highlights (district_loader.gd)."""
-        px = int(min(max((e - ORTHO_E0) / ORTHO_SIZE, 0), 1) * (self.w - 1))
-        py = int(min(max((ORTHO_N1 - n) / ORTHO_SIZE, 0), 1) * (self.h - 1))
-        block = self.img[max(py - 2, 0):py + 3, max(px - 2, 0):px + 3].reshape(-1, 3)
-        lum = block @ np.array([0.299, 0.587, 0.114], dtype=np.float32)
-        block = block[(lum >= 0.06) & (lum <= 0.97)]
-        if len(block) == 0:
-            return BUILDING
-        r, g, b = block.mean(axis=0)
-        if g > r + GREEN_MARGIN and g > b + GREEN_MARGIN:
-            return GREEN_ROOF
-        grey = r * 0.299 + g * 0.587 + b * 0.114
-        r, g, b = (x + (grey - x) * ROOF_DESATURATE for x in (r, g, b))
-        return tuple(x * (1 - ROOF_DARKEN) for x in (r, g, b))
+    CELL = 256
+
+    def __init__(self, path):
+        with open(path, encoding="utf-8") as f:
+            ways = json.load(f)["elements"]
+        self.polys = []
+        self.grid = {}
+        for w in ways:
+            tags = w.get("tags", {})
+            geom = [g for g in (w.get("geometry") or []) if g]
+            if "building" not in tags or len(geom) < 3:
+                continue
+            pts = [to_px(*to_2180(g["lat"], g["lon"])) for g in geom]
+            k = len(self.polys)
+            self.polys.append((pts, tags))
+            xs, zs = [p[0] for p in pts], [p[1] for p in pts]
+            for gx in range(int(min(xs) // self.CELL), int(max(xs) // self.CELL) + 1):
+                for gz in range(int(min(zs) // self.CELL), int(max(zs) // self.CELL) + 1):
+                    self.grid.setdefault((gx, gz), []).append(k)
+
+    def tags_at(self, x, z):
+        for k in self.grid.get((int(x // self.CELL), int(z // self.CELL)), ()):
+            pts, tags = self.polys[k]
+            inside = False
+            j = len(pts) - 1
+            for i in range(len(pts)):
+                xi, zi = pts[i]
+                xj, zj = pts[j]
+                if (zi > z) != (zj > z) and x < (xj - xi) * (z - zi) / (zj - zi) + xi:
+                    inside = not inside
+                j = i
+            if inside:
+                return tags
+        return {}
+
+
+def _year(tags):
+    m = re.search(r"\d{4}", tags.get("start_date", ""))
+    return int(m.group()) if m else None
+
+
+def classify(height, tags, seed):
+    """Facade style from the LoD2 height and the OSM tags. Unknown-age mid-rise blocks get the
+    Srodmiescie mix: half pre-war tenements, the rest 1950s socialist realism and prefab slabs."""
+    kind = tags.get("building", "")
+    try:
+        levels = int(float(tags.get("building:levels", "0").split(";")[0].replace(",", ".")))
+    except ValueError:
+        levels = 0
+    year = _year(tags)
+    if tags.get("building:material") == "brick" or kind in (
+            "industrial", "warehouse", "garage", "garages", "outbuilding", "service", "farm_auxiliary", "shed"):
+        return "cegla"
+    if height < 7 or kind in ("retail", "kiosk", "roof"):
+        return "pawilon"
+    if height >= 60:
+        return "szklo" if (year and year >= 1995) or (not year and seed < 0.5) else "biurowiec"
+    if kind in ("office", "commercial") and height >= 30:
+        return "biurowiec"
+    if kind in ("government", "university", "school", "college", "hospital", "church", "public", "civic",
+                "museum", "theatre", "cathedral", "train_station"):
+        return "piaskowiec"
+    if levels >= 9 or height >= 30:
+        return "plyta"
+    if "historic" in tags or (year and year < 1945):
+        return "kamienica"
+    if year and 1949 <= year <= 1956:
+        return "socrealizm"
+    if year and year > 1960:
+        return "plyta"
+    return "kamienica" if seed < 0.5 else ("socrealizm" if seed < 0.8 else "plyta")
+
+
+NAMED = {"white": (0.95, 0.95, 0.93), "grey": (0.6, 0.6, 0.6), "gray": (0.6, 0.6, 0.6), "beige": (0.85, 0.78, 0.62),
+         "yellow": (0.90, 0.80, 0.45), "red": (0.70, 0.35, 0.28), "brown": (0.55, 0.40, 0.30),
+         "orange": (0.85, 0.60, 0.35), "pink": (0.88, 0.66, 0.62), "green": (0.55, 0.65, 0.50),
+         "blue": (0.55, 0.62, 0.72), "cream": (0.92, 0.88, 0.75)}
+
+
+def wall_tint(tags, seed):
+    """Multiplier on the facade texture: OSM building:colour when tagged (a third of the way), and a
+    +-8% brightness jitter so neighbouring blocks of one style do not read as copies."""
+    c = (1.0, 1.0, 1.0)
+    raw = tags.get("building:colour", "").strip().lower()
+    col = NAMED.get(raw)
+    if raw.startswith("#") and len(raw) == 7:
+        try:
+            col = tuple(int(raw[i:i + 2], 16) / 255 for i in (1, 3, 5))
+        except ValueError:
+            col = None
+    if col:
+        grey = sum(col) / 3 or 1.0
+        c = tuple(1.0 + (x / grey - 1.0) * 0.35 for x in col)
+    k = 0.92 + 0.16 * seed
+    return tuple(min(1.3, x * k) for x in c)
+
+
+def seamless(img, vertical):
+    """Hides tile seams by blending with a copy rolled by half a tile, only in a thin margin at the
+    edges. Half a tile is one bay (and one floor), so both copies show pilaster/cornice there, never a window."""
+    a = np.asarray(img, dtype=np.float32)
+    h, w = a.shape[:2]
+    rolled = np.roll(a, (h // 2 if vertical else 0, w // 2), axis=(0, 1))
+    ramp = lambda n: np.clip(np.minimum(np.arange(n), n - 1 - np.arange(n)) / (0.06 * n), 0, 1)
+    wgt = ramp(w)[None, :]
+    if vertical:
+        wgt = np.minimum(wgt, ramp(h)[:, None])
+    out = a * wgt[..., None] + rolled * (1 - wgt[..., None])
+    return Image.fromarray(out.clip(0, 255).astype(np.uint8))
+
+
+def build_atlas(facade_dir):
+    """4x4 atlas of 1024 px tiles: style i's upper tile at (i % 4, 2 * (i // 4)), ground tile one row below."""
+    with open(os.path.join(facade_dir, "styles.json")) as f:
+        sizes = json.load(f)
+    atlas = Image.new("RGB", (ATLAS_TILE * ATLAS_GRID,) * 2)
+    for i, name in enumerate(STYLE_ORDER):
+        col, row = i % ATLAS_GRID, 2 * (i // ATLAS_GRID)
+        for part, dy, vertical in (("upper", 0, True), ("ground", 1, False)):
+            img = Image.open(os.path.join(facade_dir, f"{name}_{part}.png")).convert("RGB")
+            img = seamless(img.resize((ATLAS_TILE, ATLAS_TILE), Image.LANCZOS), vertical)
+            atlas.paste(img, (col * ATLAS_TILE, (row + dy) * ATLAS_TILE))
+    return atlas, [(sizes[n]["width"], sizes[n]["upper"], sizes[n]["ground"]) for n in STYLE_ORDER]
 
 
 def pkin_colour(ring_avg_h, n):
@@ -227,7 +339,7 @@ def to_px(e, n):
     return (BORDER * TILE_PX + (e - E_MIN) * PX_PER_M, BORDER * TILE_PX + (N_MAX - n) * PX_PER_M)
 
 
-def build_buildings(data_dir, ortho):
+def build_buildings(data_dir, osm):
     buildings = []
     tiles = sorted(f for f in os.listdir(os.path.join(data_dir, "Modele_3D")) if f.endswith(".gml"))
     for name in tiles:
@@ -247,10 +359,16 @@ def build_buildings(data_dir, ortho):
         print(f"  {name}: {kept} buildings in the map square", flush=True)
 
     out = []
+    counts = {}
     for i, (ce, cn, rings) in enumerate(buildings):
         base = min(v[2] for r in rings for v in r)
+        height = max(v[2] for r in rings for v in r) - base
         is_pkin = math.hypot(ce - PKIN_E, cn - PKIN_N) < PKIN_RADIUS
-        facade = FACADES[int(abs(math.sin(ce * 12.9898 + cn * 78.233) * 43758.5453)) % len(FACADES)]
+        seed = abs(math.sin(ce * 12.9898 + cn * 78.233) * 43758.5453) % 1.0
+        tags = osm.tags_at(*to_px(ce, cn))
+        style = "piaskowiec" if is_pkin else classify(height, tags, seed)
+        counts[style] = counts.get(style, 0) + 1
+        tint = wall_tint(tags, seed)
         verts = []
         flat_rings = []
         for ring in rings:
@@ -259,19 +377,32 @@ def build_buildings(data_dir, ortho):
             nrm = newell(gr)
             if nrm is None:
                 continue
+            col, kind = tint, float(STYLE_INDEX[style])
             if is_pkin:
-                col = pkin_colour(sum(v[2] for v in ring) / len(ring) - base, nrm)
+                pc = pkin_colour(sum(v[2] for v in ring) / len(ring) - base, nrm)
+                if pc in (PKIN_GOLD, PKIN_COPPER):
+                    col, kind = pc, KIND_FLAT
+                elif nrm[1] > 0.3:
+                    col, kind = (1.0, 1.0, 1.0), KIND_ROOF
             elif nrm[1] > 0.3:
-                col = ortho.roof(sum(v[0] for v in ring) / len(ring), sum(v[1] for v in ring) / len(ring))
+                col, kind = (1.0, 1.0, 1.0), KIND_ROOF
+            if kind == KIND_ROOF:
+                uv = [((x - BORDER * TILE_PX) / (SIZE_M * PX_PER_M), (z - BORDER * TILE_PX) / (SIZE_M * PX_PER_M)) for x, _, z in gr]
             else:
-                col = facade
+                # Walls: metres along the wall from its left edge (seen from outside) and above the base.
+                tx, tz = nrm[2], -nrm[0]
+                tl = math.hypot(tx, tz) or 1.0
+                along = [(x * tx + z * tz) / tl / PX_PER_M for x, _, z in gr]
+                left = min(along)
+                uv = [(a - left, y / PX_PER_M) for a, (_, y, _) in zip(along, gr)]
             for a, b, c in triangulate(gr, nrm):
                 for k in (a, b, c):
-                    verts.append((*gr[k], *nrm, *col))
+                    verts.append((*gr[k], *nrm, *col, *uv[k], kind))
             if abs(nrm[1]) > 0.3:
                 flat_rings.append([(x, z) for x, _, z in gr])
         if verts:
             out.append({"centre": to_px(ce, cn), "verts": verts, "flat": flat_rings, "pkin": is_pkin})
+    print("  styles:", counts, flush=True)
     return out
 
 
@@ -422,10 +553,13 @@ def build_ground(data_dir):
 
 
 # --- Outputs ---------------------------------------------------------------------------------------
-def write_mesh(path, buildings):
+def write_mesh(path, buildings, style_sizes):
     with open(path, "wb") as f:
         f.write(b"WMSH")
-        f.write(struct.pack("<II", 1, len(buildings)))
+        f.write(struct.pack("<II", 2, len(style_sizes)))
+        for size in style_sizes:
+            f.write(struct.pack("<fff", *size))
+        f.write(struct.pack("<I", len(buildings)))
         for b in buildings:
             f.write(struct.pack("<II", len(b["verts"]), len(b["cells"])))
             for x, z in b["cells"]:
@@ -533,12 +667,38 @@ def main():
     print("ground ...", flush=True)
     ground, cls = build_ground(data_dir)
     print("buildings ...", flush=True)
-    ortho = Ortho(os.path.join(data_dir, "wide_master_ortho.png"))
-    buildings = build_buildings(data_dir, ortho)
+    osm = OsmBuildings(os.path.join(data_dir, "wide_buildings_osm.json"))
+    buildings = build_buildings(data_dir, osm)
     owner = footprints(buildings)
 
+    print("textures ...", flush=True)
+    data_root = os.path.dirname(data_dir.rstrip("/\\"))
+    atlas, style_sizes = build_atlas(os.path.join(data_root, "facades"))
+    atlas.save(os.path.join(map_dir, "facades.png"))
+    Image.open(os.path.join(data_dir, "map_ortho_05m.png")).convert("RGB").save(os.path.join(map_dir, "roofs.png"))
+
+    print("streets ...", flush=True)
+    import build_streets as bs
+    street_ground, roads, layer_counts = bs.ground_layers(data_dir)
+    segments, zebras = bs.markings(street_ground, roads, bs.junctions(roads), data_dir)
+    streets_dir = os.path.join(data_root, "streets")
+    instances = bs.props(data_dir, segments, owner)
+    shelters = bs.shelters(data_dir)
+    surface_atlas = Image.new("RGB", (ATLAS_TILE * ATLAS_GRID,) * 2)
+    for k, name in enumerate(bs.SURFACES):
+        img = Image.open(os.path.join(streets_dir, f"surface_{name}.png")).convert("RGB").resize((ATLAS_TILE, ATLAS_TILE), Image.LANCZOS)
+        surface_atlas.paste(seamless(img, True), ((k % ATLAS_GRID) * ATLAS_TILE, (k // ATLAS_GRID) * ATLAS_TILE))
+    surface_atlas.save(os.path.join(map_dir, "surfaces.png"))
+    bs.write(os.path.join(map_dir, "streets.mesh"), street_ground, bs.load_models(os.path.join(streets_dir, "props.json")),
+             instances, [bs.SURFACE_SIZE[n] for n in bs.SURFACES])
+    kinds = {}
+    for model, *_ in instances:
+        kinds[bs.PROP_MODELS[model]] = kinds.get(bs.PROP_MODELS[model], 0) + 1
+    print(f"  streets: {len(street_ground.v)} ground vertices, {zebras} zebras, {len(shelters)} shelters, props {kinds}",
+          flush=True)
+
     ground.save(os.path.join(map_dir, "ground.png"))
-    write_mesh(os.path.join(map_dir, "buildings.mesh"), buildings)
+    write_mesh(os.path.join(map_dir, "buildings.mesh"), buildings + shelters, style_sizes)
     write_bin(os.path.join(map_dir, "map.bin"), cls)
     actors = write_yaml(os.path.join(map_dir, "map.yaml"), buildings, owner)
 
@@ -551,7 +711,7 @@ def main():
 
     verts = sum(len(b["verts"]) for b in buildings)
     blocked = int((owner >= 0).sum())
-    print(f"done: {len(buildings)} buildings, {verts} vertices ({verts * 36 / 1e6:.1f} MB), "
+    print(f"done: {len(buildings)} buildings, {verts} vertices ({verts * 48 / 1e6:.1f} MB), "
           f"{blocked} blocked cells, {actors} actors", flush=True)
 
 

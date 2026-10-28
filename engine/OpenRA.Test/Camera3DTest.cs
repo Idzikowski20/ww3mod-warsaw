@@ -53,6 +53,18 @@ namespace OpenRA.Test
 		}
 
 		[Test]
+		public void RoofCollisionLiftsTheEyeAndKeepsAimingAtTheTarget()
+		{
+			// A 300 m tower (900 px) everywhere: at 120 m the eye must rise above it, still looking at the target.
+			var camera = Make();
+			camera.RoofHeight = (ground, radius) => 900f;
+			camera.SetView(30f, 120f);
+			Assert.That((camera.GroundAt(new float2(1200, 675)) - camera.Target).Length, Is.LessThan(0.5f));
+			var back = camera.Project(camera.GroundAt(new float2(300, 1200)));
+			Assert.That((back - new float2(300, 1200)).Length, Is.LessThan(0.5f));
+		}
+
+		[Test]
 		public void YawZeroLooksNorth()
 		{
 			// Screen top is farther north (smaller world y) than the screen bottom; screen right is east.

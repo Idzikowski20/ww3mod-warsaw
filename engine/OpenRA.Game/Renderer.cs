@@ -74,6 +74,7 @@ namespace OpenRA
 		readonly IPlatform platform;
 
 		float depthMargin;
+		Color worldClearColor;
 
 		Size lastBufferSize = new(-1, -1);
 
@@ -204,6 +205,25 @@ namespace OpenRA
 			}
 		}
 
+		/// <summary>
+		/// Colour the world buffer is cleared to, i.e. what shows where nothing is drawn: black for the 2D
+		/// world, the sky behind the perspective camera's horizon.
+		/// </summary>
+		public void SetWorldClearColor(Color colour)
+		{
+			if (worldClearColor == colour)
+				return;
+
+			worldClearColor = colour;
+			worldSprite = null;
+			if (worldBuffer != null)
+			{
+				worldBuffer.Dispose();
+				worldBuffer = null;
+				SetMaximumViewportSize(lastMaximumViewportSize);
+			}
+		}
+
 		public void SetMaximumViewportSize(Size size)
 		{
 			// Aim to render the world into a framebuffer at 1:1 scaling which is then up/downscaled using a custom
@@ -221,12 +241,12 @@ namespace OpenRA
 			else
 				worldBufferSize = size.NextPowerOf2();
 
-			if (worldSprite == null || worldSheet.Size != worldBufferSize)
+			if (worldBuffer == null || worldSprite == null || worldSheet.Size != worldBufferSize)
 			{
 				worldBuffer?.Dispose();
 
 				// If enableWorldFrameBufferDownscale and the world is more than twice the size of the final output size do we allow it to be downsampled!
-				worldBuffer = Context.CreateFrameBuffer(worldBufferSize);
+				worldBuffer = worldClearColor == default ? Context.CreateFrameBuffer(worldBufferSize) : Context.CreateFrameBuffer(worldBufferSize, worldClearColor);
 
 				// Pixel art scaling mode is a customized bilinear sampling
 				worldBuffer.Texture.ScaleFilter = TextureScaleFilter.Linear;
@@ -240,7 +260,7 @@ namespace OpenRA
 			lastMaximumViewportSize = size;
 		}
 
-		public void BeginWorld(Rectangle worldViewport, float[] viewProjection = null)
+		public void BeginWorld(Rectangle worldViewport, Camera3D camera = null)
 		{
 			if (renderType != RenderType.None)
 				throw new InvalidOperationException($"BeginWorld called with renderType = {renderType}, expected RenderType.None.");
@@ -275,7 +295,7 @@ namespace OpenRA
 			}
 
 			// Every frame: the perspective camera moves without changing worldViewport.
-			WorldSpriteRenderer.SetViewProjection(viewProjection);
+			WorldSpriteRenderer.SetCamera(camera);
 
 			// WW3MOD: Enable pixel art scaling for world sprites so scaled units
 			// (e.g. infantry at 0.5x) retain crisp pixel art instead of bilinear blur
@@ -367,6 +387,16 @@ namespace OpenRA
 			PerfHistory.Increment("batches", 1);
 		}
 
+		public void DrawBatchInstanced<T>(IVertexBuffer<T> vertices, IShader shader,
+			int firstVertex, int numVertices, int instances, PrimitiveType type)
+			where T : struct
+		{
+			vertices.Bind();
+			shader.Bind();
+			Context.DrawPrimitivesInstanced(type, firstVertex, numVertices, instances);
+			PerfHistory.Increment("batches", 1);
+		}
+
 		public void DrawQuadBatch(ref Vertex[] vertices, IShader shader, int numVertices)
 		{
 			tempVertexBuffer.SetData(ref vertices, numVertices);
@@ -418,6 +448,11 @@ namespace OpenRA
 		public IShader CreateShader(IShaderBindings bindings)
 		{
 			return Context.CreateShader(bindings);
+		}
+
+		public ITexture CreateTexture()
+		{
+			return Context.CreateTexture();
 		}
 
 		public IVertexBuffer<T> CreateVertexBuffer<T>(int length) where T : struct

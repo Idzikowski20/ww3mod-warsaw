@@ -247,13 +247,18 @@ namespace OpenRA.Graphics
 			shader.SetVec("p2", -1, -1, depthMargin != 0f ? 1 : 0);
 		}
 
-		/// <summary>Switches the world pass to the perspective camera (null = the classic 2D projection).</summary>
-		public void SetViewProjection(float[] viewProjection)
+		/// <summary>Switches the world pass to the perspective camera and its haze (null = the classic 2D projection).</summary>
+		public void SetCamera(Camera3D camera)
 		{
-			shader.SetBool("Use3D", viewProjection != null);
+			shader.SetBool("Use3D", camera != null);
+			if (camera == null)
+				return;
+
 			// Copied: the threaded context posts the array to the render thread, and the camera rewrites it next frame.
-			if (viewProjection != null)
-				shader.SetMatrix("ViewProjection", (float[])viewProjection.Clone());
+			shader.SetMatrix("ViewProjection", (float[])camera.ViewProjection.Clone());
+			shader.SetVec("Eye", camera.Eye.X, camera.Eye.Y, camera.Eye.Z);
+			shader.SetVec("HazeRange", camera.HazeRange.X, camera.HazeRange.Y);
+			shader.SetVec("SkyColour", camera.SkyColour, 3);
 		}
 
 		public void SetDepthPreview(bool enabled, float contrast, float offset)

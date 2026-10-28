@@ -10,8 +10,10 @@ World:
 		CratesCheckboxVisible: True
 		StartingUnitsDropdownVisible: True
 		StartingCashDropdownVisible: True
-	# 3D Warsaw: GUGiK LoD2 buildings and the OSM ground, built by tools/warsaw/build_city.py.
+	# 3D Warsaw: GUGiK LoD2 buildings and OSM streets, built by tools/warsaw/build_city.py.
 	CityMap:
+		# The ground is the 3D street layer (streets.mesh); the orthophoto is only draped on the roofs.
+		Ground:
 
 # One per GUGiK building; map.yaml gives each its mesh (`CityBuilding: <index>`).
 warsawbuilding:

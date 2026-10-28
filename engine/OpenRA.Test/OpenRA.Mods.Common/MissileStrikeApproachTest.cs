@@ -29,9 +29,9 @@ namespace OpenRA.Test
 		// overrides it, and a test that quietly followed an override would stop pinning the default.
 		const int Margin = 16 * 1024;
 
-		// x-lake-ww3, the largest shipped map. TheShippedMapSizesAreStillWhatThisFileAssertsAgainst
-		// keeps this honest against mods/ww3mod/maps.
-		const int LargestMapCells = 130;
+		// warsaw-srodmiescie-ww3 (256 playable cells and a 1-cell border), the largest shipped map.
+		// TheShippedMapSizesAreStillWhatThisFileAssertsAgainst keeps this honest against mods/ww3mod/maps.
+		const int LargestMapCells = 258;
 
 		static WPos Cell(int x, int y)
 		{
@@ -732,6 +732,7 @@ namespace OpenRA.Test
 			yield return (97, 67);
 			yield return (128, 128);
 			yield return (130, 130);
+			yield return (258, 258);
 		}
 
 		static IEnumerable<WPos> AimPointSweep(int cellsX, int cellsY)
@@ -824,7 +825,11 @@ namespace OpenRA.Test
 		{
 			var largest = MissileStrikeApproach.StandoffFor(LargestMapCells, LargestMapCells, Margin);
 
-			Assert.That(largest, Is.LessThan(MissileStrikeApproach.MaxStandoff / 4),
+			// Headroom was a quarter of the cap while the largest map was 130x130. The 3D Warsaw map
+			// (258x258, 2026-10-28) puts the standoff at 381 cells, 37% of the 1024-cell cap: still a
+			// guard, never a live clamp. What actually breaks a strike (CPos wrap, ArcTan overflow) is
+			// pinned on its own by NoSpawnCellEverWrapsTheTwelveBitCPos and the assertion below.
+			Assert.That(largest, Is.LessThan(MissileStrikeApproach.MaxStandoff / 2),
 				"the shipped maps must sit far under the cap, or the cap is silently doing tuning");
 
 			// WVec.Yaw runs through WAngle.ArcTan, which evaluates `1024 * ay` in int arithmetic and
@@ -1031,7 +1036,7 @@ namespace OpenRA.Test
 			{
 				var raised = MissileStrikeApproach.StandoffFor(cellsX, cellsY, 4 * Margin);
 
-				Assert.That(raised, Is.LessThan(MissileStrikeApproach.MaxStandoff / 4),
+				Assert.That(raised, Is.LessThan(MissileStrikeApproach.MaxStandoff / 2),
 					$"a {cellsX}x{cellsY} map at 4x the margin approaches the standoff ceiling");
 				Assert.That(raised, Is.GreaterThan(MissileStrikeApproach.MinStandoff),
 					$"a {cellsX}x{cellsY} map at 4x the margin hit the floor");

@@ -37,6 +37,7 @@ namespace OpenRA.Platforms.Default
 
 				scaleFilter = value;
 				PrepareTexture();
+				GenerateMipmaps();
 			}
 		}
 
@@ -52,10 +53,11 @@ namespace OpenRA.Platforms.Default
 			OpenGL.glBindTexture(OpenGL.GL_TEXTURE_2D, texture);
 			OpenGL.CheckGLError();
 
-			var filter = scaleFilter == TextureScaleFilter.Linear ? OpenGL.GL_LINEAR : OpenGL.GL_NEAREST;
+			var filter = scaleFilter == TextureScaleFilter.Nearest ? OpenGL.GL_NEAREST : OpenGL.GL_LINEAR;
+			var minFilter = scaleFilter == TextureScaleFilter.Mipmapped ? OpenGL.GL_LINEAR_MIPMAP_LINEAR : filter;
 			OpenGL.glTexParameteri(OpenGL.GL_TEXTURE_2D, OpenGL.GL_TEXTURE_MAG_FILTER, filter);
 			OpenGL.CheckGLError();
-			OpenGL.glTexParameteri(OpenGL.GL_TEXTURE_2D, OpenGL.GL_TEXTURE_MIN_FILTER, filter);
+			OpenGL.glTexParameteri(OpenGL.GL_TEXTURE_2D, OpenGL.GL_TEXTURE_MIN_FILTER, minFilter);
 			OpenGL.CheckGLError();
 
 			OpenGL.glTexParameterf(OpenGL.GL_TEXTURE_2D, OpenGL.GL_TEXTURE_WRAP_S, OpenGL.GL_CLAMP_TO_EDGE);
@@ -65,7 +67,20 @@ namespace OpenRA.Platforms.Default
 
 			OpenGL.glTexParameteri(OpenGL.GL_TEXTURE_2D, OpenGL.GL_TEXTURE_BASE_LEVEL, 0);
 			OpenGL.CheckGLError();
-			OpenGL.glTexParameteri(OpenGL.GL_TEXTURE_2D, OpenGL.GL_TEXTURE_MAX_LEVEL, 0);
+			OpenGL.glTexParameteri(OpenGL.GL_TEXTURE_2D, OpenGL.GL_TEXTURE_MAX_LEVEL, scaleFilter == TextureScaleFilter.Mipmapped ? 1000 : 0);
+			OpenGL.CheckGLError();
+		}
+
+		// Rebuilds the mip chain from level 0. Needed after every upload and when switching to Mipmapped,
+		// or the texture is incomplete (samples black) for a minifying filter.
+		void GenerateMipmaps()
+		{
+			if (scaleFilter != TextureScaleFilter.Mipmapped || Size.Width == 0)
+				return;
+
+			OpenGL.glBindTexture(OpenGL.GL_TEXTURE_2D, texture);
+			OpenGL.CheckGLError();
+			OpenGL.glGenerateMipmap(OpenGL.GL_TEXTURE_2D);
 			OpenGL.CheckGLError();
 		}
 
@@ -90,6 +105,8 @@ namespace OpenRA.Platforms.Default
 				fixed (byte* ptr = &colors[0])
 					SetData(new IntPtr(ptr), width, height);
 			}
+
+			GenerateMipmaps();
 		}
 
 		public void SetFloatData(float[] data, int width, int height)
@@ -104,7 +121,7 @@ namespace OpenRA.Platforms.Default
 				fixed (float* ptr = &data[0])
 				{
 					PrepareTexture();
-					OpenGL.glTexImage2D(OpenGL.GL_TEXTURE_2D, 0, OpenGL.GL_RGBA16F, width, height,
+					OpenGL.glTexImage2D(OpenGL.GL_TEXTURE_2D, 0, OpenGL.GL_RGBA32F, width, height,
 						0, OpenGL.GL_RGBA, OpenGL.GL_FLOAT, new IntPtr(ptr));
 					OpenGL.CheckGLError();
 				}

@@ -307,6 +307,8 @@ namespace OpenRA.Graphics
 			{
 				MinZoom = MaxZoom = unlockedMinZoom = 1f;
 				Zoom = 1f;
+				var sky = camera.SkyColour;
+				Game.Renderer.SetWorldClearColor(Color.FromArgb(255, (int)(255 * sky[0]), (int)(255 * sky[1]), (int)(255 * sky[2])));
 				Game.Renderer.SetMaximumViewportSize(Game.Renderer.NativeResolution);
 				foreach (var t in worldRenderer.World.WorldActor.TraitsImplementing<INotifyViewportZoomExtentsChanged>())
 					t.ViewportZoomExtentsChanged(1f, 1f);
@@ -314,6 +316,7 @@ namespace OpenRA.Graphics
 				return;
 			}
 
+			Game.Renderer.SetWorldClearColor(default);
 			var vd = graphicSettings.ViewportDistance;
 			if (viewportSizes.AllowNativeZoom && vd == WorldViewport.Native)
 				MinZoom = 1;

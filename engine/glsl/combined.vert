@@ -8,6 +8,7 @@ uniform float PaletteRows;
 // x east / y up / z south frame and drawn through ViewProjection (see Graphics/Camera3D.cs).
 uniform bool Use3D;
 uniform mat4 ViewProjection;
+out vec3 vWorld;
 
 in vec3 aVertexPosition;
 in vec4 aVertexTexCoord;
@@ -44,8 +45,9 @@ vec4 SelectChannelMask(uint x)
 
 void main()
 {
+	vWorld = vec3(aVertexPosition.x, 0.0, aVertexPosition.y);
 	if (Use3D)
-		gl_Position = ViewProjection * vec4(aVertexPosition.x, 0.0, aVertexPosition.y, 1.0);
+		gl_Position = ViewProjection * vec4(vWorld, 1.0);
 	else
 		gl_Position = vec4((aVertexPosition - Scroll) * p1 + p2, 1);
 	vTexCoord = aVertexTexCoord;

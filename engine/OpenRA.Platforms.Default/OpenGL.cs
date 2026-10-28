@@ -130,6 +130,7 @@ namespace OpenRA.Platforms.Default
 		public const int GL_CLAMP_TO_EDGE = 0x812F;
 		public const int GL_TEXTURE_BASE_LEVEL = 0x813C;
 		public const int GL_TEXTURE_MAX_LEVEL = 0x813D;
+		public const int GL_LINEAR_MIPMAP_LINEAR = 0x2703;
 
 		public const int GL_ARRAY_BUFFER = 0x8892;
 		public const int GL_ELEMENT_ARRAY_BUFFER = 0x8893;
@@ -149,6 +150,7 @@ namespace OpenRA.Platforms.Default
 		public const int GL_ACTIVE_UNIFORMS = 0x8B86;
 
 		public const int GL_RGBA16F = 0x881A;
+		public const int GL_RGBA32F = 0x8814;
 
 		// OpenGL 4.3
 		public const int GL_DEBUG_OUTPUT = 0x92E0;
@@ -399,6 +401,9 @@ namespace OpenRA.Platforms.Default
 		public delegate void DrawArrays(int mode, int first, int count);
 		public static DrawArrays glDrawArrays { get; private set; }
 
+		public delegate void DrawArraysInstanced(int mode, int first, int count, int instanceCount);
+		public static DrawArraysInstanced glDrawArraysInstanced { get; private set; }
+
 		public delegate void DrawElements(int mode, int count, int type, IntPtr indices);
 		public static DrawElements glDrawElements { get; private set; }
 
@@ -456,6 +461,9 @@ namespace OpenRA.Platforms.Default
 
 		public delegate void TexParameteri(int target, int pname, int param);
 		public static TexParameteri glTexParameteri { get; private set; }
+
+		public delegate void GenerateMipmap(int target);
+		public static GenerateMipmap glGenerateMipmap { get; private set; }
 
 		public delegate void TexParameterf(int target, int pname, float param);
 		public static TexParameterf glTexParameterf { get; private set; }
@@ -603,6 +611,7 @@ namespace OpenRA.Platforms.Default
 				glEnableVertexAttribArray = Bind<EnableVertexAttribArray>("glEnableVertexAttribArray");
 				glDisableVertexAttribArray = Bind<DisableVertexAttribArray>("glDisableVertexAttribArray");
 				glDrawArrays = Bind<DrawArrays>("glDrawArrays");
+				glDrawArraysInstanced = Bind<DrawArraysInstanced>("glDrawArraysInstanced");
 				glDrawElements = Bind<DrawElements>("glDrawElements");
 				glBlendEquation = Bind<BlendEquation>("glBlendEquation");
 				glBlendEquationSeparate = Bind<BlendEquationSeparate>("glBlendEquationSeparate");
@@ -618,6 +627,7 @@ namespace OpenRA.Platforms.Default
 				glTexImage2D = Bind<TexImage2D>("glTexImage2D");
 				glCopyTexImage2D = Bind<CopyTexImage2D>("glCopyTexImage2D");
 				glTexParameteri = Bind<TexParameteri>("glTexParameteri");
+				glGenerateMipmap = Bind<GenerateMipmap>("glGenerateMipmap");
 				glTexParameterf = Bind<TexParameterf>("glTexParameterf");
 
 				if (Profile != GLProfile.Embedded)

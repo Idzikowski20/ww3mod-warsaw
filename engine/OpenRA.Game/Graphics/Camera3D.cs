@@ -57,6 +57,19 @@ namespace OpenRA.Graphics
 		public readonly float PitchHigh = 60f;
 		public readonly float PitchLerp = 0.15f;
 
+		[Desc("Roof collision: the eye stays RoofClearance above any roof within CollisionRadius, easing up at LiftRate (1/s).")]
+		public readonly float RoofClearance = 6f;
+		public readonly float CollisionRadius = 8f;
+		public readonly float LiftRate = 12f;
+
+		[Desc("Distance haze: starts at HazeBegin x and is full at HazeEnd x the view distance, never closer than",
+			"HazeMinBegin / HazeMinEnd metres, so the map centre stays clear at every altitude. SkyColour is the haze and the sky.")]
+		public readonly float HazeBegin = 1.2f;
+		public readonly float HazeEnd = 3.5f;
+		public readonly float HazeMinBegin = 300f;
+		public readonly float HazeMinEnd = 1500f;
+		public readonly float[] SkyColour = { 0.66f, 0.68f, 0.70f };
+
 		public readonly float Fov = 60f;
 		public readonly float Near = 0.5f;
 		public readonly float Far = 8000f;
@@ -86,12 +99,27 @@ namespace OpenRA.Graphics
 		Size screen;
 
 		float3 eye, right, up, back;
+		float lift;
+
+		/// <summary>
+		/// Highest roof (world px above the ground) within a radius (world px) of a ground point (world px),
+		/// or float.NegativeInfinity over open ground. Set by whatever owns the 3D buildings; null = no collision.
+		/// </summary>
+		public Func<float2, float, float> RoofHeight { get; set; }
 
 		/// <summary>Column-major view-projection matrix. Its y is flipped so NDC -1 is the top of the screen, as in the 2D world pass.</summary>
 		public float[] ViewProjection { get; } = new float[16];
 
 		/// <summary>Ground point the camera orbits, world px.</summary>
 		public float2 Target => target;
+
+		/// <summary>The eye in the camera frame (world px: x east, y up, z south).</summary>
+		public float3 Eye => eye;
+
+		/// <summary>Haze start and full distance from the eye, world px.</summary>
+		public float2 HazeRange { get; private set; }
+
+		public float[] SkyColour => s.SkyColour;
 
 		public Camera3D(PerspectiveCamera settings, float pxPerMetre, Rectangle mapBounds, Size screen)
 		{
@@ -133,7 +161,7 @@ namespace OpenRA.Graphics
 
 			yaw += yawInput * s.KeyYawSpeed * dt;
 			pitch = float2.Lerp(pitch, DefaultPitch(altitude), 1f - (float)Math.Pow(1f - s.PitchLerp, dt * 60f));
-			Rebuild();
+			Rebuild(dt);
 		}
 
 		/// <summary>One wheel notch: +1 = up (zoom out), -1 = down. Leaves some velocity behind (scroll inertia).</summary>
@@ -298,8 +326,12 @@ namespace OpenRA.Graphics
 		static float Decay(float rate, float dt) { return (float)Math.Exp(-rate * dt); }
 		static float Rad(float degrees) { return degrees * (float)Math.PI / 180f; }
 
-		/// <summary>Godot's Basis.from_euler(-pitch, yaw, 0): columns right, up, back; the eye sits ViewDistance back.</summary>
-		void Rebuild()
+		/// <summary>
+		/// Godot's Basis.from_euler(-pitch, yaw, 0): columns right, up, back; the eye sits ViewDistance back.
+		/// Then rts_camera.gd's roof collision: the eye is lifted above nearby roofs (easing in over
+		/// <paramref name="dt"/>, at once when dt is 0 or a tall wall appears) and re-aimed at the target.
+		/// </summary>
+		void Rebuild(float dt = 0f)
 		{
 			var p = Rad(pitch);
 			var a = Rad(yaw);
@@ -307,7 +339,34 @@ namespace OpenRA.Graphics
 			right = new float3(ca, 0, -sa);
 			up = new float3(-sp * sa, cp, -sp * ca);
 			back = new float3(cp * sa, sp, cp * ca);
-			eye = new float3(target.X, 0, target.Y) + ViewDistance() * pxPerMetre * back;
+			var centre = new float3(target.X, 0, target.Y);
+			var distance = ViewDistance();
+			eye = centre + distance * pxPerMetre * back;
+			HazeRange = pxPerMetre * new float2(Math.Max(distance * s.HazeBegin, s.HazeMinBegin), Math.Max(distance * s.HazeEnd, s.HazeMinEnd));
+
+			if (RoofHeight != null)
+			{
+				var roof = RoofHeight(new float2(eye.X, eye.Z), s.CollisionRadius * pxPerMetre);
+				var need = Math.Max(0f, roof + s.RoofClearance * pxPerMetre - eye.Y);
+				if (dt <= 0f || need > lift + 20f * pxPerMetre)
+					lift = need;
+				else
+					lift += (need - lift) * (1f - Decay(s.LiftRate, dt));
+
+				lift = Math.Max(lift, need * 0.999f);
+			}
+			else
+				lift = 0f;
+
+			if (lift > 0.01f)
+			{
+				eye += new float3(0, lift, 0);
+				var d = eye - centre;
+				back = (1f / (float)Math.Sqrt(Dot(d, d))) * d;
+				var r = new float3(back.Z, 0, -back.X);
+				right = (1f / (float)Math.Sqrt(Dot(r, r))) * r;
+				up = new float3(back.Y * right.Z, back.Z * right.X - back.X * right.Z, -back.Y * right.X);
+			}
 
 			// View: rows right, up, back with translation -R^T * eye. Projection: GL perspective, then y negated.
 			var f = 1f / tanHalfFov;

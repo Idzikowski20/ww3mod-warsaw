@@ -157,6 +157,13 @@ namespace OpenRA.Platforms.Default
 			OpenGL.CheckGLError();
 		}
 
+		public void DrawPrimitivesInstanced(PrimitiveType pt, int firstVertex, int numVertices, int instances)
+		{
+			VerifyThreadAffinity();
+			OpenGL.glDrawArraysInstanced(ModeFromPrimitiveType(pt), firstVertex, numVertices, instances);
+			OpenGL.CheckGLError();
+		}
+
 		public void DrawElements(int numIndices, int offset)
 		{
 			VerifyThreadAffinity();

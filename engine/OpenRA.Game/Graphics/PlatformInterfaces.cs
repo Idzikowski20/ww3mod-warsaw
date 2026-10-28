@@ -99,6 +99,9 @@ namespace OpenRA
 		void DisableScissor();
 		void Present();
 		void DrawPrimitives(PrimitiveType pt, int firstVertex, int numVertices);
+
+		/// <summary>Draws the vertex range <paramref name="instances"/> times; shaders tell the copies apart by gl_InstanceID.</summary>
+		void DrawPrimitivesInstanced(PrimitiveType pt, int firstVertex, int numVertices, int instances);
 		void DrawElements(int numIndices, int offset);
 		void Clear();
 		void EnableDepthBuffer();
@@ -156,7 +159,8 @@ namespace OpenRA
 		ShaderVertexAttribute[] Attributes { get; }
 	}
 
-	public enum TextureScaleFilter { Nearest, Linear }
+	/// <summary>Mipmapped: trilinear minification over GPU-generated mipmaps, for textures seen at a distance (3D city).</summary>
+	public enum TextureScaleFilter { Nearest, Linear, Mipmapped }
 
 	public interface ITexture : IDisposable
 	{

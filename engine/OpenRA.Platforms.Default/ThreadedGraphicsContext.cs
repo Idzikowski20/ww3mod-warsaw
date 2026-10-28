@@ -48,6 +48,7 @@ namespace OpenRA.Platforms.Default
 		Func<object, object> getCreateVertexBuffer;
 		Func<object, IIndexBuffer> getCreateIndexBuffer;
 		Action<object> doDrawPrimitives;
+		Action<object> doDrawPrimitivesInstanced;
 		Action<object> doDrawElements;
 		Action<object> doEnableScissor;
 		Action<object> doSetBlendMode;
@@ -109,6 +110,12 @@ namespace OpenRA.Platforms.Default
 						{
 							var t = ((PrimitiveType, int, int))tuple;
 							context.DrawPrimitives(t.Item1, t.Item2, t.Item3);
+						};
+					doDrawPrimitivesInstanced =
+						tuple =>
+						{
+							var t = ((PrimitiveType, int, int, int))tuple;
+							context.DrawPrimitivesInstanced(t.Item1, t.Item2, t.Item3, t.Item4);
 						};
 					doDrawElements =
 						tuple =>
@@ -454,6 +461,11 @@ namespace OpenRA.Platforms.Default
 		public void DrawPrimitives(PrimitiveType type, int firstVertex, int numVertices)
 		{
 			Post(doDrawPrimitives, (type, firstVertex, numVertices));
+		}
+
+		public void DrawPrimitivesInstanced(PrimitiveType type, int firstVertex, int numVertices, int instances)
+		{
+			Post(doDrawPrimitivesInstanced, (type, firstVertex, numVertices, instances));
 		}
 
 		public void DrawElements(int numIndices, int offset)

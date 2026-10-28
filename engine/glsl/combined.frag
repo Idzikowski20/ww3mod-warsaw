@@ -19,6 +19,13 @@ uniform vec2 DepthPreviewParams;
 uniform float DepthTextureScale;
 uniform bool EnablePixelArtScaling;
 
+// Perspective camera haze (Graphics/Camera3D.cs).
+uniform bool Use3D;
+uniform vec3 Eye;
+uniform vec2 HazeRange;
+uniform vec3 SkyColour;
+in vec3 vWorld;
+
 in vec4 vTexCoord;
 flat in float vTexPalette;
 flat in vec4 vChannelMask;
@@ -219,6 +226,10 @@ void main()
 			c = vec4(vTint.rgb, -vTint.a);
 		else
 			c *= vTint;
+
+		// Premultiplied alpha: the haze replaces the colour in proportion to coverage.
+		if (Use3D)
+			c.rgb = mix(c.rgb, SkyColour * c.a, smoothstep(HazeRange.x, HazeRange.y, distance(vWorld, Eye)));
 
 		fragColor = c;
 	}
