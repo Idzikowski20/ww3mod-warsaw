@@ -78,6 +78,9 @@ namespace OpenRA.Graphics
 		public readonly float StartYaw = 45f;
 		public readonly float StartPitch = 35.264f;
 		public readonly float StartFraming = 380f;
+
+		[Desc("World image resolution relative to the window's physical pixels (1 = native; above 1 supersamples).")]
+		public readonly float RenderScale = 1f;
 	}
 
 	/// <summary>

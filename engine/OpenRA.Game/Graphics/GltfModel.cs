@@ -512,6 +512,10 @@ namespace OpenRA.Graphics
 
 			foreach (var part in mesh.Parts)
 			{
+				// No outlines (the user's call, 2026-10-28): models built with one still carry the shell.
+				if (part.Outline)
+					continue;
+
 				var m = nodes[part.Node] * model;
 				shader.SetMatrix("Model", new[]
 				{

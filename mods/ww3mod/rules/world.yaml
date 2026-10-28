@@ -7,8 +7,8 @@
 	Selection:
 	ControlGroups:
 	MusicPlaylist:
-		VictoryMusic: score
-		DefeatMusic: map
+		VictoryMusic: juanjo1
+		DefeatMusic: juanjo4
 	TerrainGeometryOverlay:
 	DebugVisualizations:
 	# LOCAL LIGHTING. Every value here is the trait's own default and is written out on purpose: with
@@ -278,6 +278,8 @@
 
 World:
 	Inherits: ^BaseWorld
+	# Perspective camera: smooth the edges of the 3D models and city (off in the editor and in 2D).
+	FxaaPostProcessEffect:
 	# AI tournament harness — silently no-op unless launched with both
 	# Test.Mode=true AND Test.TournamentConfig=<path>. See
 	# WORKSPACE/plans/260511_ai_tournament_harness.md

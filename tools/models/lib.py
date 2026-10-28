@@ -173,6 +173,28 @@ def mirror_x(o):
     return c
 
 
+def strip_team(o):
+    """No player colour on the models (the user's call, 2026-10-28): the unit marker shows the side. Faces with
+    a "team" material get the part's main paint (the material covering most of its area) instead. Not deleted:
+    on hand-built parts a team face can be structure, and deleting it would leave a hole."""
+    if o.type != "MESH":
+        return
+    mats = list(o.data.materials)
+    team = {i for i, m in enumerate(mats) if m and m.name.startswith("team")}
+    if not team:
+        return
+    area = {}
+    for p in o.data.polygons:
+        if p.material_index not in team and mats[p.material_index] and not mats[p.material_index].name.startswith("outline"):
+            area[p.material_index] = area.get(p.material_index, 0.0) + p.area
+    if not area:
+        return
+    main = max(area, key=area.get)
+    for p in o.data.polygons:
+        if p.material_index in team:
+            p.material_index = main
+
+
 def outline(o, width):
     """Adds the inverted-hull outline to o: a copy pushed out along smoothed normals, faces flipped,
     material "outline". The engine draws only its inside, so it reads as a dark rim."""
@@ -203,7 +225,7 @@ def outline(o, width):
     bm.free()
 
 
-def finish(path, outline_width=0.035, keep=("hull", "turret", "barrel"), texture_size=1024, wreck=False,
+def finish(path, outline_width=0.0, keep=("hull", "turret", "barrel"), texture_size=1024, wreck=False,
            flat=True, export_options=None):
     """Flattens every helper part into the nearest kept ancestor node (one draw per node in the engine),
     bakes one weathered albedo atlas for the model (burnt when wreck), adds outlines and exports a .glb.
@@ -238,10 +260,13 @@ def finish(path, outline_width=0.035, keep=("hull", "turret", "barrel"), texture
         for o in keepers:
             for p in o.data.polygons:
                 p.use_smooth = False
+    for o in keepers:
+        strip_team(o)
     if texture_size:
         bake(keepers, texture_size, os.path.splitext(os.path.basename(path))[0], wreck)
-    for o in keepers:
-        outline(o, outline_width)
+    if outline_width > 0:
+        for o in keepers:
+            outline(o, outline_width)
 
     # export_options adds to or overrides these, e.g. {"export_animation_mode": "NLA_TRACKS"} so that
     # same-named NLA tracks on several objects become one glTF clip (idle / move / attack).

@@ -30,7 +30,7 @@ The preview is lit exactly as the game shader lights it (albedo × (0.55 + 0.55�
     PREVIEW = {"distance": 13}           # render_preview() camera options
 
 `lib.finish(path, keep=("hull", "turret", "barrel"), texture_size=1024, flat=True, wreck=False,
-outline_width=0.035, export_options=None)`:
+outline_width=0.0, export_options=None)`:
 
 - **keep** — object names that survive as glTF nodes. Every other object is merged into its nearest kept
   ancestor (or `keep[0]` when it has none). One draw call per kept node, so keep only what moves.

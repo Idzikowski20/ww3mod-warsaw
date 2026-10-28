@@ -1,0 +1,143 @@
+MapFormat: 12
+
+RequiresMod: ww3mod
+
+Title: DEMO: M4 model gallery
+
+Author: WW3MOD balance harness
+
+Tileset: TEMPERAT
+
+MapSize: 66,34
+
+Bounds: 1,1,64,32
+
+Visibility: MissionSelector
+
+Categories: Test
+
+Players:
+	PlayerReference@Neutral:
+		Name: Neutral
+		OwnsWorld: True
+		NonCombatant: True
+		Faction: america
+	PlayerReference@USA:
+		Name: USA
+		Playable: True
+		LockFaction: True
+		LockColor: True
+		Faction: america
+		Color: 4488FF
+		Enemies: Russia
+	PlayerReference@Russia:
+		Name: Russia
+		LockFaction: True
+		LockColor: True
+		Faction: russia
+		Color: FF4444
+		Enemies: USA
+
+Actors:
+	OwnSR: supplyroute
+		Owner: USA
+		Location: 4,4
+	OpponentSR: supplyroute
+		Owner: Russia
+		Location: 60,30
+	Ru0: t90
+		Owner: Russia
+		Location: 10,8
+		Facing: 384
+	Ru1: bmp2
+		Owner: Russia
+		Location: 14,8
+		Facing: 384
+	Ru2: btr
+		Owner: Russia
+		Location: 18,8
+		Facing: 384
+	Ru3: giatsint
+		Owner: Russia
+		Location: 22,8
+		Facing: 384
+	Ru4: grad
+		Owner: Russia
+		Location: 26,8
+		Facing: 384
+	Ru5: tos
+		Owner: Russia
+		Location: 30,8
+		Facing: 384
+	Ru6: tunguska
+		Owner: Russia
+		Location: 10,12
+		Facing: 384
+	Ru7: iskander
+		Owner: Russia
+		Location: 14,12
+		Facing: 384
+	Ru8: TRUK
+		Owner: Russia
+		Location: 18,12
+		Facing: 384
+	Ru9: MSAR
+		Owner: Russia
+		Location: 22,12
+		Facing: 384
+	Ru10: LCCV
+		Owner: Russia
+		Location: 26,12
+		Facing: 384
+	Ru11: MNLY
+		Owner: Russia
+		Location: 30,12
+		Facing: 384
+	Air0: TRAN
+		Owner: USA
+		Location: 10,20
+		Facing: 384
+	Air1: littlebird
+		Owner: USA
+		Location: 15,20
+		Facing: 384
+	Air2: HELI
+		Owner: USA
+		Location: 20,20
+		Facing: 384
+	Air3: A10
+		Owner: USA
+		Location: 25,20
+		Facing: 384
+	Air4: F16
+		Owner: USA
+		Location: 30,20
+		Facing: 384
+	Air5: HALO
+		Owner: USA
+		Location: 10,25
+		Facing: 384
+	Air6: HIND
+		Owner: USA
+		Location: 15,25
+		Facing: 384
+	Air7: MI28
+		Owner: USA
+		Location: 20,25
+		Facing: 384
+	Air8: FROG
+		Owner: USA
+		Location: 25,25
+		Facing: 384
+	Air9: MIG
+		Owner: USA
+		Location: 30,25
+		Facing: 384
+	SpawnUSA: mpspawn
+		Owner: Neutral
+		Location: 12,16
+	SpawnRussia: mpspawn
+		Owner: Neutral
+		Location: 30,16
+
+Rules: rules.yaml
