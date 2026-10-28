@@ -36,6 +36,8 @@ warsawbuilding:
 		TargetTypes: Ground, C4, DetonateAttack, Structure
 	BlocksProjectiles:
 	AppearsOnMiniMap:
+	# The minimap asks every actor whether fog hides it; city blocks are mapped terrain, always known.
+	AlwaysVisible:
 	Tooltip:
 		Name: Building
 	Explodes:
