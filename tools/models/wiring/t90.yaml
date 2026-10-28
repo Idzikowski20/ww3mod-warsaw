@@ -1,0 +1,11 @@
+t90:
+	WithMeshBody:
+		Model: t90.glb
+		Scale: 2
+		TurretNodes:
+			turret: primary
+
+t90.husk:
+	WithMeshBody:
+		Model: t90-wreck.glb
+		Scale: 2
