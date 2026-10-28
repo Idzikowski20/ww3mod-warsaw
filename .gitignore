@@ -80,3 +80,6 @@ shadows.bin
 # gate-557c38d7.log was 24 MB of merge-gate output for an already-merged
 # commit; the gate's verdict belongs in the commit message, not the packfile.
 /WORKSPACE/gate-*.log
+
+# M4 model sources (downloads, previews, scratch) - large, licences tracked in tools/models/units/*.py
+WORKSPACE/m4-refs/

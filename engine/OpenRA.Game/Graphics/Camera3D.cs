@@ -245,6 +245,19 @@ namespace OpenRA.Graphics
 			return new float2((x / w + 1f) * 0.5f * screen.Width, (y / w + 1f) * 0.5f * screen.Height);
 		}
 
+		/// <summary>Projects a 3D point (world px: x east, y up, z south) to screen px. Behind the eye lands far off screen.</summary>
+		public float2 ProjectPoint(in float3 p)
+		{
+			var m = ViewProjection;
+			var x = m[0] * p.X + m[4] * p.Y + m[8] * p.Z + m[12];
+			var y = m[1] * p.X + m[5] * p.Y + m[9] * p.Z + m[13];
+			var w = m[3] * p.X + m[7] * p.Y + m[11] * p.Z + m[15];
+			if (w <= 1e-4f)
+				return new float2(-1e6f, -1e6f);
+
+			return new float2((x / w + 1f) * 0.5f * screen.Width, (y / w + 1f) * 0.5f * screen.Height);
+		}
+
 		/// <summary>
 		/// The world px ground point under a screen px. A ray at or above the horizon returns the point
 		/// Far metres away along its heading, so the result is always on the plane.

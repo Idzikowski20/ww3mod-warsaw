@@ -1,0 +1,1 @@
+DEMO: M4 3D unit models -- T-90 meshes at four headings, turret tracking, a knocked-out wreck.

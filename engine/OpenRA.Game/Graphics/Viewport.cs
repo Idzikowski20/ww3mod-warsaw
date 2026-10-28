@@ -427,6 +427,12 @@ namespace OpenRA.Graphics
 			return (graphicSettings.UIScale / Zoom * view.ToFloat2()).ToInt2() + TopLeft;
 		}
 
+		/// <summary>Perspective camera only: view px of a point above the ground (world px x and z, height y up).</summary>
+		public int2 WorldToViewPx3D(in float3 xyz)
+		{
+			return (camera.ProjectPoint(xyz) / ViewToNative).ToInt2();
+		}
+
 		public int2 WorldToViewPx(int2 world)
 		{
 			if (camera != null)

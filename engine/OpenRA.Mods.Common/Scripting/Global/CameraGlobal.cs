@@ -26,6 +26,13 @@ namespace OpenRA.Mods.Common.Scripting
 			set => Context.WorldRenderer.Viewport.Center(value);
 		}
 
+		[Desc("Poses the perspective 3D camera: yaw in degrees and altitude in metres. No effect on the 2D camera.",
+			"Client-local view state, like Position.")]
+		public void SetView(double yaw, double altitude)
+		{
+			Context.WorldRenderer.Viewport.SetCameraView((float)yaw, (float)altitude);
+		}
+
 		// PITFALL: zoom is expressed as a MULTIPLE OF THE DEFAULT zoom, not as the engine's raw
 		// Viewport.Zoom. Raw zoom is not portable between machines: Viewport.MinZoom is derived from
 		// Game.Renderer.NativeResolution and the player's ViewportDistance setting

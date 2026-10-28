@@ -1,0 +1,17 @@
+# 3D unit models (M4). Each actor that has a glTF model gets WithMeshBody here, merged over its
+# definition (this file loads last). The sprite body and turret stay in the rules and stop drawing
+# while the mesh is on (WithMeshBody.HidesSprites). Models are built by tools/models/build.py into
+# bits/models/; sources and licences: tools/models/units/<name>.py and CREDITS.md.
+# Scale is the size over real metres: units are drawn about twice life size, as their sprites were.
+
+t90:
+	WithMeshBody:
+		Model: t90.glb
+		Scale: 2
+		TurretNodes:
+			turret: primary
+
+t90.husk:
+	WithMeshBody:
+		Model: t90-wreck.glb
+		Scale: 2

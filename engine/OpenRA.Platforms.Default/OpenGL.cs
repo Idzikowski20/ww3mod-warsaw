@@ -425,6 +425,9 @@ namespace OpenRA.Platforms.Default
 		public delegate void DepthFunc(int func);
 		public static DepthFunc glDepthFunc { get; private set; }
 
+		public delegate void DepthMask(bool flag);
+		public static DepthMask glDepthMask { get; private set; }
+
 		public delegate void Scissor(int x, int y, int width, int height);
 		public static Scissor glScissor { get; private set; }
 
@@ -617,6 +620,7 @@ namespace OpenRA.Platforms.Default
 				glBlendEquationSeparate = Bind<BlendEquationSeparate>("glBlendEquationSeparate");
 				glBlendFunc = Bind<BlendFunc>("glBlendFunc");
 				glDepthFunc = Bind<DepthFunc>("glDepthFunc");
+				glDepthMask = Bind<DepthMask>("glDepthMask");
 				glScissor = Bind<Scissor>("glScissor");
 				glReadPixels = Bind<ReadPixels>("glReadPixels");
 				glGenTextures = Bind<GenTextures>("glGenTextures");

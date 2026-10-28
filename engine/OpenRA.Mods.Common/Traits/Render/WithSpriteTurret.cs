@@ -91,9 +91,10 @@ namespace OpenRA.Mods.Common.Traits.Render
 
 			DefaultAnimation = new Animation(self.World, rs.GetImage(self), () => t.WorldOrientation.Yaw);
 			DefaultAnimation.PlayRepeating(NormalizeSequence(self, info.Sequence));
+			var meshHides = WithMeshBody.HidesSprites(self);
 			rs.Add(new AnimationWithOffset(DefaultAnimation,
 				() => TurretOffset(self),
-				() => IsTraitDisabled,
+				() => IsTraitDisabled || meshHides(),
 				p => RenderUtils.ZOffsetFromCenter(self, p, 1)), info.Palette, info.IsPlayerPalette);
 
 			// Restrict turret facings to match the sprite

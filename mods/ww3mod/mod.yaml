@@ -57,6 +57,7 @@ FileSystem: DefaultFileSystem
 		ww3mod|bits/units/naval
 		ww3mod|bits/units/buildings
 		ww3mod|bits/units/objects
+		ww3mod|bits/models
 
 		ww3mod|bits/weapons/
 		ww3mod|bits/weapons/explosions
@@ -149,6 +150,7 @@ Rules:
 	ww3mod|rules/ingame/vehicles-russia.yaml
 	ww3mod|rules/ingame/nuclear-arsenal.yaml
 	ww3mod|rules/cameo-captions.yaml
+	ww3mod|rules/models-3d.yaml
 
 Sequences:
 	ww3mod|sequences/sequences.yaml

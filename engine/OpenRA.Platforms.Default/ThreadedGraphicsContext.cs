@@ -38,6 +38,8 @@ namespace OpenRA.Platforms.Default
 		Func<object> doClear;
 		Action doClearDepthBuffer;
 		Action doDisableDepthBuffer;
+		Action doEnableDepthWrite;
+		Action doDisableDepthWrite;
 		Action doEnableDepthBuffer;
 		Action doDisableScissor;
 		Action doPresent;
@@ -84,6 +86,8 @@ namespace OpenRA.Platforms.Default
 					doClear = () => { context.Clear(); return null; };
 					doClearDepthBuffer = () => context.ClearDepthBuffer();
 					doDisableDepthBuffer = () => context.DisableDepthBuffer();
+					doEnableDepthWrite = () => context.SetDepthWrite(true);
+					doDisableDepthWrite = () => context.SetDepthWrite(false);
 					doEnableDepthBuffer = () => context.EnableDepthBuffer();
 					doDisableScissor = () => context.DisableScissor();
 					doPresent = () => context.Present();
@@ -451,6 +455,11 @@ namespace OpenRA.Platforms.Default
 		public void DisableDepthBuffer()
 		{
 			Post(doDisableDepthBuffer);
+		}
+
+		public void SetDepthWrite(bool enabled)
+		{
+			Post(enabled ? doEnableDepthWrite : doDisableDepthWrite);
 		}
 
 		public void DisableScissor()

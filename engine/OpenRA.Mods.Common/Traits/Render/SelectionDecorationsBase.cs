@@ -102,9 +102,13 @@ namespace OpenRA.Mods.Common.Traits.Render
 			}
 
 			// PERF: Only search rollover enumerable if needed.
+			var rollover = false;
 			if (!displayHealth || !displayExtra)
-				if (self.World.Selection.RolloverContains(self))
+				if (rollover = self.World.Selection.RolloverContains(self))
 					displayHealth = displayExtra = true;
+
+			foreach (var r in RenderMarker(self, wr, selected, rollover))
+				yield return r;
 
 			if (selected && !Info.ShowNever)
 				foreach (var r in RenderSelectionBox(self, wr, Info.SelectionBoxColor))
@@ -143,6 +147,12 @@ namespace OpenRA.Mods.Common.Traits.Render
 		}
 
 		protected abstract int2 GetDecorationOrigin(Actor self, WorldRenderer wr, string pos, int2 margin);
+
+		/// <summary>A unit marker drawn whether or not the actor is selected (perspective camera).</summary>
+		protected virtual IEnumerable<IRenderable> RenderMarker(Actor self, WorldRenderer wr, bool selected, bool rollover)
+		{
+			return Enumerable.Empty<IRenderable>();
+		}
 		protected abstract IEnumerable<IRenderable> RenderSelectionBox(Actor self, WorldRenderer wr, Color color);
 		protected abstract IEnumerable<IRenderable> RenderSelectionBars(Actor self, WorldRenderer wr, bool displayHealth, bool displayExtra);
 	}
