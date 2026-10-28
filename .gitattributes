@@ -5,6 +5,7 @@
 # anything else as undefined), so it fell through to core.autocrlf. Only the explicit
 # `eol=lf` lines ever worked, which is why .cs warned on CRLF while .md silently took
 # 2276 CR bytes into WORKSPACE/DISCOVERIES.md on 2026-08-05.
+#
 # NOTE: engine/.gitattributes carries the same policy and MUST be kept in sync — a
 # deeper .gitattributes wins per-attribute, so anything set only here is inert for
 # every path under engine/.
@@ -13,6 +14,7 @@
 # what covers EXTENSIONLESS files (Makefile, openra, pre-commit, COPYING, AUTHORS,
 # VERSION) and any new file type nobody remembers to list below.
 * text=auto eol=lf
+
 # Binary formats — pinned explicitly so content auto-detection can never misfire on
 # a game asset or an image. This is NOT belt-and-braces: engine/packaging/artwork
 # PNGs legitimately contain CR bytes (ra_16x16.png is 632 bytes with 5 CRs), and
@@ -38,25 +40,27 @@
 *.png binary
 *.wav binary
 *.ttf binary
+
 # Custom for Visual Studio
 *.cs     diff=csharp
+
 # Append-only knowledge logs: use git's built-in union merge driver.
+#
 # WHY: every worker branch appends dated entries to the tail of these files, so two
 # branches merging almost always conflict append-vs-append even though both sides are
 # wanted. That conflict has been resolved by hand as keep-both on every multi-branch
 # merge, which is pure ceremony with a real risk of dropping an entry under pressure.
 # `merge=union` takes both sides automatically, which is exactly the correct
 # resolution for a log nobody edits in place.
+#
 # LIMIT: union is WRONG for files where two sides may edit the SAME line meaningfully
 # -- it would silently keep both versions of that line. These files are append-only by
 # convention (DOCS/reference/README.md), so that case does not arise. Do not extend
 # this to a file that gets edited in place.
 WORKSPACE/DISCOVERIES.md merge=union
 WORKSPACE/bugs/discovered.md merge=union
-# Unit models and their marker silhouettes (M4): about a hundred files of a few MB each, kept in Git LFS.
-mods/ww3mod/bits/models/*.glb filter=lfs diff=lfs merge=lfs -text
-mods/ww3mod/bits/models/*.png filter=lfs diff=lfs merge=lfs -text
-# Music (juanjo_sound FPS Menu Music Themes, Ogg Vorbis, ~2-4 MB each), kept in Git LFS.
-mods/ww3mod/bits/sounds/music/*.ogg filter=lfs diff=lfs merge=lfs -text
-mods/ww3mod/bits/models/* !text !filter !merge !diff
-mods/ww3mod/bits/sounds/music/*.ogg !text !filter !merge !diff
+
+# Unit models, their marker silhouettes (M4) and the music: binary, kept in plain git (GitHub refuses
+# new LFS objects on a public fork).
+mods/ww3mod/bits/models/* binary
+mods/ww3mod/bits/sounds/music/*.ogg binary
